@@ -1,0 +1,24 @@
+# Entornos Virtuales
+venv/
+env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# Variables de Entorno (¡Nunca subir claves secretas o contraseñas!)
+.env
+.env.local
+.env.*
+
+# IDEs
+.vscode/
+.idea/
+
+# IMPORTANTE: NO estamos ignorando gastronomia.db porque 
+# necesitamos que se suba a GitHub para que Render la use.
+# Tampoco ignoramos el dataset de excel si es necesario para el ETL.
