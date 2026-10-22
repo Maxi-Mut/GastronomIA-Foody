@@ -12,7 +12,7 @@ from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.config import settings
 from backend.services.search_engine import (
@@ -44,7 +44,7 @@ app.add_middleware(
 )
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., max_length=500)
     history: Optional[List[Dict[str, str]]] = []
 
 @app.get("/api/health")

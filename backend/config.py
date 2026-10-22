@@ -17,6 +17,7 @@ class Settings:
     
     # LLM Provider Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-2.5-flash"
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip()
     DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "auto").strip().lower() # 'gemini', 'openai', 'local' or 'auto'
     
