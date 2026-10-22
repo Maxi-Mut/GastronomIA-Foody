@@ -155,7 +155,7 @@ if os.path.exists(FRONTEND_DIR):
 
     @app.get("/favicon.ico")
     def serve_favicon():
-        fav_path = os.path.join(FRONTEND_DIR, "foody_mascot.png")
+        fav_path = os.path.join(FRONTEND_DIR, "foody_favicon.png")
         if os.path.exists(fav_path):
             return FileResponse(fav_path)
         raise HTTPException(status_code=404)
