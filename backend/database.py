@@ -13,10 +13,21 @@ if not os.path.exists(DB_PATH):
 
 def get_db_connection():
     if not os.path.exists(DB_PATH):
-        from backend.db_setup import build_database
-        build_database(db_path=DB_PATH)
+        try:
+            from backend.db_setup import build_database
+            build_database(db_path=DB_PATH)
+        except Exception:
+            pass
     
-    conn = sqlite3.connect(DB_PATH)
+    # Try connecting with URI read-only mode, fall back to standard connect
+    try:
+        uri_path = DB_PATH.replace('\\', '/')
+        if not uri_path.startswith('/'):
+            uri_path = '/' + uri_path
+        conn = sqlite3.connect(f"file:{uri_path}?mode=ro", uri=True, check_same_thread=False)
+    except Exception:
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        
     conn.row_factory = sqlite3.Row
     return conn
 
