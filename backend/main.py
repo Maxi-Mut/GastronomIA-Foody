@@ -126,7 +126,14 @@ async def api_chat(req: ChatRequest):
     return result
 
 # Static files for Frontend
-FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
+FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
+
+if not os.path.exists(FRONTEND_DIR):
+    alt_frontend = os.path.join(os.getcwd(), "frontend")
+    if os.path.exists(alt_frontend):
+        FRONTEND_DIR = alt_frontend
 
 if os.path.exists(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -134,3 +141,15 @@ if os.path.exists(FRONTEND_DIR):
     @app.get("/")
     def serve_frontend_index():
         return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+    @app.get("/index.html")
+    def serve_index_html():
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+    @app.get("/favicon.ico")
+    def serve_favicon():
+        fav_path = os.path.join(FRONTEND_DIR, "foody_mascot.png")
+        if os.path.exists(fav_path):
+            return FileResponse(fav_path)
+        raise HTTPException(status_code=404)
+
