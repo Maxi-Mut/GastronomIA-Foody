@@ -10,7 +10,10 @@ class Settings:
     PROJECT_NAME: str = "GastronomIA - Asistente Gastronómico CABA y GBA"
     VERSION: str = "1.0.0"
     HOST: str = os.getenv("HOST", "127.0.0.1")
-    PORT: int = int(os.getenv("PORT", 8000))
+    PORT: int = 8000
+    _raw_port = os.getenv("PORT", "8000")
+    if _raw_port and _raw_port.strip().isdigit():
+        PORT = int(_raw_port.strip())
     
     # LLM Provider Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
