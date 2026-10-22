@@ -3,206 +3,662 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GastronomIA — Asistente Gastronómico CABA & GBA</title>
-  <meta name="description" content="Asistente conversacional inteligente y georreferenciado para descubrir restaurantes, bares y cafés en CABA y Gran Buenos Aires con filtros dietarios y datos oficiales.">
-  
-  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <title>Foody — GastronomIA con Google Maps (CABA & GBA)</title>
+  <meta name="description" content="Foody, tu asistente de GastronomIA para descubrir los mejores restaurantes, bares, cafés y rutas gastronómicas en Buenos Aires y Gran Buenos Aires.">
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
   <!-- Leaflet CSS for Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <!-- Leaflet MarkerCluster CSS for 8.181 venues clustering -->
+  <!-- Leaflet MarkerCluster CSS for 8.181 venues -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  
+
   <!-- App Stylesheet -->
   <link rel="stylesheet" href="/static/styles.css">
-  
-  <!-- Favicon / Icon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%220%20100%20100%22><text y=%22.9em%22 font-size=%2290%22>🍽️</text></svg>">
-</head>
-<body class="dark-theme">
-  <!-- Background ambient glowing orbs -->
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
 
-  <!-- Header & Navigation -->
-  <header class="app-header">
-    <div class="header-left">
-      <div class="brand-logo">
-        <span class="logo-emoji">🍽️</span>
-        <div class="brand-text">
-          <h1>Gastronom<span class="highlight">IA</span></h1>
-          <span class="badge-coverage">CABA & GBA</span>
+  <!-- Favicon -->
+  <link rel="icon" href="/static/foody_mascot.png" type="image/png">
+</head>
+<body class="foody-light-theme">
+
+  <!-- TOP GOOGLE BAR -->
+  <header class="google-topbar">
+    <div class="topbar-left">
+      <!-- Hamburger Toggle for Sidebar Collapse -->
+      <button class="topbar-icon-btn btn-toggle-sidebar" id="btn-toggle-sidebar" title="Contraer o expandir menú lateral" aria-label="Menú principal">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="#5f6368">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+
+      <!-- Google Logo + Foody GastronomIA Brand -->
+      <div class="brand-cluster" id="brand-home-link" title="Ir a Inicio">
+        <div class="google-wordmark" aria-label="Google">
+          <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span>
+        </div>
+        <span class="brand-pipe">|</span>
+        <div class="foody-brand">
+          <span class="foody-name">Foody</span>
+          <span class="foody-sub">Gastronom<span class="highlight-ia">IA</span></span>
+          <span class="badge-maps">con Google Maps</span>
         </div>
       </div>
     </div>
 
-    <!-- Quick Stats & Info Trigger -->
-    <div class="header-right">
-      <button id="btn-safety-info" class="header-btn safety-btn" title="Protocolo de Seguridad Alimentaria">
-        <span class="icon">⚠️</span>
-        <span class="btn-text">Seguridad Alimentaria</span>
+    <!-- Center Search Bar -->
+    <div class="topbar-center">
+      <form id="global-search-form" class="google-search-bar" role="search">
+        <span class="search-lens-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#5f6368" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input 
+          type="text" 
+          id="global-search-input" 
+          placeholder="¿Qué estás buscando hoy en Buenos Aires?" 
+          autocomplete="off"
+        />
+        <button type="button" class="search-action-btn" id="btn-voice-search" title="Búsqueda por voz">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="#4285f4">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+        <button type="button" class="search-action-btn" id="btn-lens-search" title="Filtro rápido">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path fill="#4285f4" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            <path fill="#ea4335" d="M9 3H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4V3Z"/>
+            <path fill="#fbbc05" d="M15 3h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-4V3Z"/>
+            <path fill="#34a853" d="M9 21H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h4v8Z"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Controls: Accessibility, Notifications, Stats, Profile -->
+    <div class="topbar-right">
+      <button class="topbar-icon-btn" id="btn-accessibility" title="Protocolo de Seguridad Alimentaria & Accesibilidad">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>
+        </svg>
       </button>
 
-      <button id="btn-stats" class="header-btn" title="Estadísticas de la Base de Datos">
-        <span class="icon">📊</span>
-        <span class="btn-text">8.181 Locales</span>
+      <button class="topbar-icon-btn" id="btn-notifications" title="Notificaciones & Novedades">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+        </svg>
+        <span class="notification-dot"></span>
       </button>
 
-      <!-- View switch for mobile -->
-      <div class="view-toggle">
-        <button id="btn-toggle-chat" class="toggle-btn active" title="Ver Chat">💬 Chat</button>
-        <button id="btn-toggle-map" class="toggle-btn" title="Ver Mapa">🗺️ Mapa</button>
+      <button class="topbar-icon-btn" id="btn-stats" title="Métricas de la base de datos (8.181 locales)">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <circle cx="5" cy="5" r="2"/>
+          <circle cx="12" cy="5" r="2"/>
+          <circle cx="19" cy="5" r="2"/>
+          <circle cx="5" cy="12" r="2"/>
+          <circle cx="12" cy="12" r="2"/>
+          <circle cx="19" cy="12" r="2"/>
+          <circle cx="5" cy="19" r="2"/>
+          <circle cx="12" cy="19" r="2"/>
+          <circle cx="19" cy="19" r="2"/>
+        </svg>
+      </button>
+
+      <div class="user-avatar-wrap" title="Perfil de usuario">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&h=80&q=80" alt="Avatar" class="user-avatar" />
       </div>
     </div>
   </header>
 
-  <!-- Notice Banner: Dietary Safety Guarantee Reminder -->
-  <div class="safety-banner" id="safety-banner">
-    <div class="banner-content">
-      <span class="banner-icon">🛡️</span>
-      <p>
-        <strong>Compromiso de Salud:</strong> Información pública de <strong>BA Data</strong> y <strong>OpenStreetMap</strong>. 
-        Ante cualquier restricción (Sin TACC, veganismo, etc.), <em>recomendamos siempre contactar al local para confirmar protocolos antes de consumir</em>.
-      </p>
-      <button class="banner-dismiss" id="banner-dismiss" aria-label="Cerrar banner">×</button>
-    </div>
-  </div>
+  <!-- 3-COLUMN WORKSPACE LAYOUT -->
+  <div class="app-layout" id="app-layout">
 
-  <!-- Main Application Container (Dual Panel Layout) -->
-  <main class="main-container">
-    
-    <!-- LEFT PANEL: Conversational Chat & Search -->
-    <section class="panel chat-panel" id="chat-section">
-      
-      <!-- Filter Toolbar -->
-      <div class="filter-toolbar">
-        <div class="filter-select-wrapper">
-          <label for="barrio-select" class="sr-only">Barrio o Municipio</label>
-          <select id="barrio-select" class="custom-select">
-            <option value="">📍 Todos los barrios (CABA y GBA)</option>
-          </select>
-        </div>
-
-        <div class="dietary-toggles">
-          <button type="button" class="chip-filter" data-diet="sin_tacc" id="chip-sin-tacc">
-            <span class="chip-dot dot-amber"></span> 🌾 Sin TACC
-          </button>
-          <button type="button" class="chip-filter" data-diet="vegano" id="chip-vegano">
-            <span class="chip-dot dot-green"></span> 🌱 Vegano
-          </button>
-          <button type="button" class="chip-filter" data-diet="vegetariano" id="chip-vegetariano">
-            <span class="chip-dot dot-emerald"></span> 🥗 Vegetariano
-          </button>
-        </div>
+    <!-- LEFT SIDEBAR (COLLAPSIBLE) -->
+    <aside class="sidebar-left" id="sidebar-left">
+      <!-- Mini Mascot Logo -->
+      <div class="sidebar-mascot-header">
+        <img src="/static/foody_mascot.png" alt="Foody Mascot" class="sidebar-mascot-img" />
+        <span class="sidebar-mascot-title">Foody</span>
       </div>
 
-      <!-- Chat Messages Scrollable Area -->
-      <div class="chat-messages" id="chat-messages">
-        
-        <!-- Welcome Message -->
-        <div class="message-row bot-row">
-          <div class="bot-avatar">🤖</div>
-          <div class="message-bubble bot-bubble">
-            <div class="bubble-header">
-              <span class="bot-name">GastronomIA</span>
-              <span class="time-stamp">Ahora</span>
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <button class="nav-pill active" data-nav="inicio" id="nav-inicio" title="Inicio">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+          </span>
+          <span class="nav-text">Inicio</span>
+        </button>
+
+        <button class="nav-pill" data-nav="chat" id="nav-chat" title="Chat Conversacional">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+            </svg>
+          </span>
+          <span class="nav-text">Chat</span>
+        </button>
+
+        <button class="nav-pill" data-nav="explorar" id="nav-explorar" title="Explorador de Mapa">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/>
+            </svg>
+          </span>
+          <span class="nav-text">Explorar</span>
+        </button>
+
+        <button class="nav-pill" data-nav="mis-lugares" id="nav-lugares" title="Lugares Visitados y Reseñas">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          </span>
+          <span class="nav-text">Mis lugares</span>
+        </button>
+
+        <button class="nav-pill" data-nav="favoritos" id="nav-favoritos" title="Lugares Favoritos">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </span>
+          <span class="nav-text">Favoritos</span>
+        </button>
+
+        <button class="nav-pill" data-nav="perfil" id="nav-perfil" title="Perfil y Estadísticas">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </span>
+          <span class="nav-text">Perfil</span>
+        </button>
+      </nav>
+
+      <!-- Bottom Region Tag -->
+      <div class="sidebar-footer">
+        <p class="sidebar-location">
+          <span class="sidebar-location-text">Buenos Aires y Gran Buenos Aires</span>
+          <span class="pin-icon">📍</span>
+        </p>
+      </div>
+    </aside>
+
+    <!-- CENTER MAIN WORKSPACE (SWITCHABLE VIEWS) -->
+    <main class="main-content" id="main-content">
+
+      <!-- ==========================================
+           VIEW 1: INICIO (Default Mockup View)
+           ========================================== -->
+      <div class="view-panel active" id="view-inicio">
+
+        <!-- HERO WELCOME BANNER (FOODY) -->
+        <section class="foody-hero-card" id="foody-hero">
+          <div class="hero-left">
+            <div class="mascot-frame">
+              <img src="/static/foody_mascot.png" alt="Foody Robot Chef" class="mascot-img floating-mascot" />
             </div>
-            <div class="bubble-content">
-              <p>¡Hola! Soy tu asistente gastronómico inteligente para la <strong>Ciudad de Buenos Aires</strong> y el <strong>Gran Buenos Aires</strong>.</p>
-              <p>Puedo ayudarte a encontrar lugares reales de nuestra base de <strong>8.181 establecimientos habilitados</strong> según zona, cocina o necesidades dietarias.</p>
-              
-              <div class="suggestions-container">
-                <span class="suggestions-label">💡 Probá preguntarme:</span>
-                <div class="suggestions-chips">
-                  <button class="suggestion-btn" data-query="Lugares con opciones sin tacc en CABA y Palermo">🌾 Opciones Sin TACC en CABA y Palermo</button>
-                  <button class="suggestion-btn" data-query="Pizzerías tradicionales en Palermo">🍕 Pizzerías tradicionales en Palermo</button>
-                  <button class="suggestion-btn" data-query="Restaurantes veganos en Palermo">🌱 Opciones Veganas en Palermo</button>
-                  <button class="suggestion-btn" data-query="Cafés de especialidad en San Telmo y Colegiales">☕ Cafés en San Telmo / Colegiales</button>
+          </div>
+          <div class="hero-right">
+            <h1 class="hero-title">¡Hola! Soy Foody,<br/>tu asistente de <span class="brand-gradient">GastronomIA</span> <span class="sparkle">✨</span></h1>
+            <p class="hero-subtitle">
+              Estoy acá para ayudarte a descubrir los mejores sabores y experiencias gastronómicas en Buenos Aires y Gran Buenos Aires.
+            </p>
+            <p class="hero-question">¿En qué puedo ayudarte hoy?</p>
+
+            <!-- Prompt Bar Inside Hero -->
+            <form id="hero-prompt-form" class="hero-prompt-bar">
+              <input 
+                type="text" 
+                id="hero-input" 
+                placeholder="Pregúntale algo a Foody..." 
+                autocomplete="off"
+                required
+              />
+              <button type="submit" class="hero-send-btn" id="hero-submit-btn" title="Preguntar">
+                <span class="wand-icon">🪄</span>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- QUICK CATEGORY ACTION CARDS (2 ROWS) -->
+        <section class="category-cards-section" id="categories-section">
+          <div class="category-grid">
+            <!-- Row 1 -->
+            <button class="cat-card" data-action="restaurantes">
+              <div class="cat-icon-wrap icon-blue">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="#1a73e8">
+                  <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+                </svg>
+              </div>
+              <div class="cat-info">
+                <h3>Restaurantes<br/>y cafés</h3>
+              </div>
+            </button>
+
+            <button class="cat-card" data-action="rutas">
+              <div class="cat-icon-wrap icon-green">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="#1e8e3e">
+                  <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+                </svg>
+              </div>
+              <div class="cat-info">
+                <h3>Rutas<br/>gastronómicas</h3>
+              </div>
+            </button>
+
+            <button class="cat-card" data-action="turismo">
+              <div class="cat-icon-wrap icon-yellow">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="#f9ab00">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                  <path d="M7 12h2v5H7zm4-7h2v12h-2zm4 4h2v8h-2z"/>
+                </svg>
+              </div>
+              <div class="cat-info">
+                <h3>Turismo<br/>gastronómico</h3>
+              </div>
+            </button>
+
+            <!-- Row 2 -->
+            <button class="cat-card cat-card-wide" data-action="personalizadas">
+              <div class="cat-icon-wrap icon-rainbow">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="#ea4335">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+              </div>
+              <div class="cat-info">
+                <h3>Recomendaciones<br/>personalizadas</h3>
+              </div>
+            </button>
+
+            <button class="cat-card cat-card-wide" data-action="destino">
+              <div class="cat-icon-wrap icon-red">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="#ea4335">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+              </div>
+              <div class="cat-info">
+                <h3>Sugerencias según<br/>tu destino</h3>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- FILTER TOOLBAR (BARRIOS & DIETARY CHIPS) -->
+        <section class="toolbar-section">
+          <div class="toolbar-inner">
+            <div class="barrio-select-box">
+              <select id="barrio-select" class="google-select">
+                <option value="">📍 Todos los barrios (CABA y GBA)</option>
+              </select>
+            </div>
+
+            <div class="dietary-chips-row">
+              <button type="button" class="diet-chip" data-diet="sin_tacc" id="chip-sin-tacc">
+                🌾 Sin TACC
+              </button>
+              <button type="button" class="diet-chip" data-diet="vegano" id="chip-vegano">
+                🌱 Vegano
+              </button>
+              <button type="button" class="diet-chip" data-diet="vegetariano" id="chip-vegetariano">
+                🥗 Vegetariano
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- RESULTS STREAM CONTAINER -->
+        <section class="results-stream-section" id="stream-section">
+          <div class="stream-header" id="stream-header" style="display: none;">
+            <h2 class="stream-title" id="stream-title">Sugerencias destacadas</h2>
+            <span class="stream-counter" id="stream-counter">Mostrando resultados</span>
+          </div>
+
+          <div class="results-container" id="results-container">
+            <!-- Dynamically populated cards -->
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ==========================================
+           VIEW 2: CHAT CONVERSACIONAL CON FOODY
+           ========================================== -->
+      <div class="view-panel" id="view-chat" style="display: none;">
+        <div class="chat-full-container">
+          <!-- Chat Header -->
+          <div class="chat-full-header">
+            <div class="chat-mascot-badge">
+              <img src="/static/foody_mascot.png" alt="Foody" class="chat-avatar-img" />
+              <span class="chat-online-indicator" title="En línea"></span>
+            </div>
+            <div class="chat-header-info">
+              <h2>Foody Asistente</h2>
+              <p>Conectado a la base oficial de <strong>8.181 locales</strong> en CABA y GBA</p>
+            </div>
+            <button class="chat-clear-btn" id="btn-clear-chat" title="Nueva conversación">
+              <span>🧹</span> Reiniciar Chat
+            </button>
+          </div>
+
+          <!-- Chat Messages Scroll Stream -->
+          <div class="chat-full-messages" id="chat-full-messages">
+            <!-- Welcome message from Foody -->
+            <div class="chat-bubble-row bot-row">
+              <div class="chat-bubble-avatar">
+                <img src="/static/foody_mascot.png" alt="Foody" />
+              </div>
+              <div class="chat-bubble-content bot-bubble">
+                <p>¡Hola! Soy <strong>Foody</strong>, tu asistente gastronómico personal de <strong>GastronomIA</strong> ✨</p>
+                <p>Puedo recomendarte restaurantes, bodegones históricos, opciones sin TACC, veganas o armarte rutas gastronómicas personalizadas por barrio.</p>
+                <div class="chat-quick-suggestions">
+                  <span class="quick-title">💡 Sugerencias rápidas:</span>
+                  <div class="quick-chips">
+                    <button class="quick-chip" data-prompt="Restaurantes con opciones sin TACC en Palermo">🌾 Sin TACC en Palermo</button>
+                    <button class="quick-chip" data-prompt="Bodegones clásicos con milanesas gigantes en San Telmo">🥩 Bodegones en San Telmo</button>
+                    <button class="quick-chip" data-prompt="Cafés de especialidad en Colegiales y Belgrano">☕ Cafés en Colegiales</button>
+                    <button class="quick-chip" data-prompt="Ruta gastronómica para un sábado en CABA">🗺️ Ruta de sábado</button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
+          <!-- Chat Floating Input Bar -->
+          <div class="chat-full-input-bar">
+            <form id="chat-full-form" class="chat-full-form">
+              <input 
+                type="text" 
+                id="chat-full-input" 
+                placeholder="Preguntale a Foody (ej: 'busco pizzería tradicional con opciones veganas en Caballito')..." 
+                autocomplete="off"
+                required
+              />
+              <button type="submit" class="chat-full-send-btn" id="chat-full-send-btn" title="Enviar consulta">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </form>
+            <div class="chat-input-disclaimer">
+              🔒 Respuestas fundamentadas en registros oficiales de BA Data y OpenStreetMap.
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Chat Input Bar -->
-      <div class="chat-input-container">
-        <form id="chat-form" class="chat-form">
-          <div class="input-wrapper">
-            <input 
-              type="text" 
-              id="user-input" 
-              placeholder="Preguntá lo que quieras: 'busco comida sin gluten en Belgrano'..." 
-              autocomplete="off"
-              required
-            >
-            <button type="submit" id="send-btn" class="send-btn" aria-label="Enviar mensaje">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
+      <!-- ==========================================
+           VIEW 3: EXPLORAR MAPA COMPLETO
+           ========================================== -->
+      <div class="view-panel" id="view-explorar" style="display: none;">
+        <div class="explorer-map-wrapper">
+          <!-- Floating Map Toolbar -->
+          <div class="explorer-toolbar">
+            <div class="explorer-barrio-select-wrap">
+              <select id="explorer-barrio-select" class="explorer-select">
+                <option value="">📍 Todos los barrios (CABA y GBA)</option>
+              </select>
+            </div>
+
+            <div class="explorer-dietary-chips">
+              <button type="button" class="explorer-chip" data-diet="sin_tacc" id="exp-chip-sintacc">
+                🌾 Sin TACC
+              </button>
+              <button type="button" class="explorer-chip" data-diet="vegano" id="exp-chip-vegano">
+                🌱 Vegano
+              </button>
+              <button type="button" class="explorer-chip" data-diet="vegetariano" id="exp-chip-veggie">
+                🥗 Vegetariano
+              </button>
+            </div>
+
+            <div class="explorer-stats-pill">
+              <span id="explorer-venues-count">Cargando locales...</span>
+            </div>
+
+            <button class="explorer-recenter-btn" id="btn-explorer-recenter" title="Recentrar mapa">
+              📍 Recentrar
             </button>
           </div>
-        </form>
-        <div class="input-disclaimer">
-          🔒 Respuestas fundamentadas únicamente en registros oficiales. Sin alucinaciones de locales ni precios.
-        </div>
-      </div>
-    </section>
 
-    <!-- RIGHT PANEL: Interactive Map & Results Cards -->
-    <section class="panel map-panel" id="map-section">
-      <div class="map-header">
-        <div class="map-title-wrap">
-          <span class="map-icon">🗺️</span>
-          <h2>Explorador Georreferenciado</h2>
-        </div>
-        <div class="map-actions">
-          <span id="markers-count" class="markers-badge">Cargando mapa...</span>
-          <button id="btn-recenter" class="recenter-btn" title="Centrar mapa en CABA / GBA">📍 Recentrar</button>
+          <!-- Full Screen Map Canvas -->
+          <div id="explorer-map" class="explorer-map-canvas"></div>
         </div>
       </div>
 
-      <!-- Leaflet Map Canvas -->
-      <div id="map" class="map-canvas"></div>
+      <!-- ==========================================
+           VIEW 4: MIS LUGARES VISITADOS Y RESEÑAS
+           ========================================== -->
+      <div class="view-panel" id="view-lugares" style="display: none;">
+        <div class="visited-places-container">
+          <div class="visited-header">
+            <div>
+              <h2 class="visited-title">📍 Mis Lugares Visitados</h2>
+              <p class="visited-subtitle">Tu diario gastronómico con puntuaciones, notas y recomendaciones personales.</p>
+            </div>
+            <button class="btn-add-visited" id="btn-add-visited-manual">
+              <span>➕</span> Agregar Lugar Visitado
+            </button>
+          </div>
 
-      <!-- Selected Venue Details Drawer -->
-      <div id="venue-drawer" class="venue-drawer hidden">
-        <div class="drawer-header">
-          <span class="drawer-tag" id="drawer-tag">Restaurante</span>
-          <button id="drawer-close" class="drawer-close" aria-label="Cerrar">&times;</button>
+          <!-- Visited Stats Summary -->
+          <div class="visited-metrics-bar">
+            <div class="visited-metric-card">
+              <span class="metric-num" id="metric-visited-total">0</span>
+              <span class="metric-label">Locales visitados</span>
+            </div>
+            <div class="visited-metric-card">
+              <span class="metric-num" id="metric-avg-rating">0.0</span>
+              <span class="metric-label">Puntuación promedio</span>
+            </div>
+            <div class="visited-metric-card">
+              <span class="metric-num" id="metric-favorite-zone">--</span>
+              <span class="metric-label">Zona más concurrida</span>
+            </div>
+          </div>
+
+          <!-- Visited Places Grid -->
+          <div class="visited-cards-grid" id="visited-cards-grid">
+            <!-- Dynamic Visited Cards or Empty State -->
+          </div>
         </div>
-        <h3 id="drawer-title" class="drawer-title">Nombre del local</h3>
-        <p id="drawer-cuisine" class="drawer-cuisine">Tipo de cocina</p>
-        <p id="drawer-address" class="drawer-address">📍 Dirección, Barrio</p>
-
-        <!-- Dietary status badges in drawer -->
-        <div id="drawer-dietary" class="drawer-dietary"></div>
-
-        <!-- Direct Contact actions -->
-        <div class="drawer-actions">
-          <a id="drawer-tel" href="#" class="action-btn tel-btn" target="_blank">
-            <span>📞</span> Llamar / Confirmar
-          </a>
-          <a id="drawer-web" href="#" class="action-btn web-btn" target="_blank">
-            <span>🌐</span> Sitio Web
-          </a>
-        </div>
-        
-        <div class="drawer-source" id="drawer-source">Fuente: OpenStreetMap</div>
       </div>
-    </section>
 
-  </main>
+      <!-- ==========================================
+           VIEW 5: FAVORITOS
+           ========================================== -->
+      <div class="view-panel" id="view-favoritos" style="display: none;">
+        <div class="visited-places-container">
+          <div class="visited-header">
+            <div>
+              <h2 class="visited-title">🤍 Mis Lugares Favoritos</h2>
+              <p class="visited-subtitle">Establecimientos que guardaste para tu próxima salida gastronómica.</p>
+            </div>
+          </div>
+          <div class="visited-cards-grid" id="favs-cards-grid"></div>
+        </div>
+      </div>
 
-  <!-- MODAL: Food Safety Protocol (Directiva del PDF) -->
+    </main>
+
+    <!-- RIGHT SIDEBAR (MAP WIDGET, ZONES, EXPERIENCES & BANNER) -->
+    <aside class="sidebar-right" id="sidebar-right">
+
+      <!-- CARD 1: MINI MAP WIDGET -->
+      <div class="widget-card map-widget-card">
+        <div class="map-widget-header">
+          <button class="pill-btn-maps" id="btn-open-maps" title="Abrir explorador de mapa completo">
+            <span>📍</span> Abrir en Maps
+          </button>
+        </div>
+        <div id="map" class="mini-map-canvas"></div>
+        <div class="map-widget-footer">
+          <button class="pill-btn-maps-sm" id="btn-recenter" title="Abrir explorador de mapa">
+            📍 Abrir en Maps
+          </button>
+        </div>
+      </div>
+
+      <!-- CARD 2: EXPLORAR POR ZONA -->
+      <div class="widget-card zones-widget-card">
+        <h3 class="widget-title">
+          <span class="widget-title-icon">❖</span> Explorar por Zona
+        </h3>
+        <div class="zones-grid">
+          <button class="zone-thumb-card" data-zone="CABA">
+            <div class="zone-img-wrap">
+              <img src="/static/zone_caba.jpg" alt="CABA" class="zone-img" />
+            </div>
+            <span class="zone-label">CABA</span>
+          </button>
+
+          <button class="zone-thumb-card" data-zone="Zona Norte">
+            <div class="zone-img-wrap">
+              <img src="/static/zone_norte.jpg" alt="Zona Norte" class="zone-img" />
+            </div>
+            <span class="zone-label">Zona Norte</span>
+          </button>
+
+          <button class="zone-thumb-card" data-zone="Zona Sur">
+            <div class="zone-img-wrap">
+              <img src="/static/zone_sur.jpg" alt="Zona Sur" class="zone-img" />
+            </div>
+            <span class="zone-label">Zona Sur</span>
+          </button>
+
+          <button class="zone-thumb-card" data-zone="Zona Oeste">
+            <div class="zone-img-wrap">
+              <img src="/static/zone_oeste.jpg" alt="Zona Oeste" class="zone-img" />
+            </div>
+            <span class="zone-label">Zona Oeste</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CARD 3: TUS EXPERIENCIAS -->
+      <div class="widget-card experiences-card" id="card-trigger-experiencias" style="cursor: pointer;" title="Ver mis lugares visitados">
+        <h3 class="widget-title">
+          <span class="star-icon">⭐</span> Tus experiencias
+        </h3>
+        <div class="exp-content-box">
+          <div class="exp-icon">🍴</div>
+          <p class="exp-text">
+            Guarda tus lugares favoritos y crea tu propio viaje gastronómico.
+          </p>
+        </div>
+      </div>
+
+      <!-- CARD 4: PROMO BANNER (#ListoParaExplorar) -->
+      <div class="widget-card promo-banner-card">
+        <div class="promo-bg-img" style="background-image: url('/static/promo_food.jpg');"></div>
+        <div class="promo-overlay">
+          <div class="promo-mascot-badge">
+            <img src="/static/foody_mascot.png" alt="Foody Mascot" class="promo-mascot-img" />
+          </div>
+          <span class="promo-tag">#ListoParaExplorar</span>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- VENUE DETAILS DRAWER / MODAL -->
+  <div id="venue-drawer" class="venue-drawer hidden">
+    <div class="drawer-header">
+      <span class="drawer-tag" id="drawer-tag">Restaurante</span>
+      <button id="drawer-close" class="drawer-close" aria-label="Cerrar">&times;</button>
+    </div>
+    <h3 id="drawer-title" class="drawer-title">Nombre del local</h3>
+    <p id="drawer-cuisine" class="drawer-cuisine">Tipo de cocina</p>
+    <p id="drawer-address" class="drawer-address">📍 Dirección, Barrio</p>
+
+    <div id="drawer-dietary" class="drawer-dietary"></div>
+
+    <div class="drawer-actions">
+      <a id="drawer-tel" href="#" class="action-btn tel-btn" target="_blank">
+        <span>📞</span> Llamar / Confirmar
+      </a>
+      <a id="drawer-web" href="#" class="action-btn web-btn" target="_blank">
+        <span>🌐</span> Sitio Web
+      </a>
+      <button id="drawer-fav" class="action-btn fav-btn" title="Guardar en favoritos">
+        <span>🤍</span> Favorito
+      </button>
+      <button id="drawer-mark-visited" class="action-btn review-btn" title="Marcar como visitado y dejar reseña">
+        <span>⭐</span> Reseñar
+      </button>
+    </div>
+
+    <div class="drawer-source" id="drawer-source">Fuente: OpenStreetMap</div>
+  </div>
+
+  <!-- MODAL: AGREGAR / EDITAR RESEÑA -->
+  <div id="modal-review" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">✍️</span>
+          <h3 id="modal-review-title">Dejar Reseña de Experiencia</h3>
+        </div>
+        <button class="modal-close" id="modal-review-close">&times;</button>
+      </div>
+      <form id="form-review">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="review-venue-name" class="form-label">Establecimiento</label>
+            <input type="text" id="review-venue-name" class="form-input" placeholder="Nombre del restaurante..." required />
+          </div>
+
+          <div class="form-group">
+            <label for="review-venue-barrio" class="form-label">Barrio o Localidad</label>
+            <input type="text" id="review-venue-barrio" class="form-input" placeholder="Ej: Palermo, San Telmo, etc." />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Puntuación de tu Experiencia</label>
+            <div class="star-rating-selector" id="star-rating-selector">
+              <span class="star-btn" data-val="1">⭐</span>
+              <span class="star-btn" data-val="2">⭐</span>
+              <span class="star-btn" data-val="3">⭐</span>
+              <span class="star-btn" data-val="4">⭐</span>
+              <span class="star-btn active" data-val="5">⭐</span>
+              <span class="rating-val-display" id="rating-val-display">5 / 5 estrellas</span>
+            </div>
+            <input type="hidden" id="review-rating" value="5" />
+          </div>
+
+          <div class="form-group">
+            <label for="review-comment" class="form-label">Tu Reseña Personal</label>
+            <textarea id="review-comment" class="form-textarea" rows="4" placeholder="¿Qué probaste? ¿Recomendás algún plato en particular? ¿Cómo fue la atención o las opciones sin gluten/veganas?" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="review-date" class="form-label">Fecha de Visita</label>
+            <input type="date" id="review-date" class="form-input" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="btn-review-cancel">Cancelar</button>
+          <button type="submit" class="modal-btn-primary">Guardar Reseña</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOD SAFETY MODAL (Protocolo de Salud - Directiva del PDF) -->
   <div id="modal-safety" class="modal-overlay hidden">
-    <div class="modal-content glass-card">
+    <div class="modal-card">
       <div class="modal-header">
         <div class="modal-title-wrap">
           <span class="modal-icon">⚠️</span>
@@ -237,53 +693,41 @@
     </div>
   </div>
 
-  <!-- MODAL: Dataset Stats Dashboard -->
+  <!-- STATS MODAL -->
   <div id="modal-stats" class="modal-overlay hidden">
-    <div class="modal-content glass-card stats-modal-content">
+    <div class="modal-card">
       <div class="modal-header">
         <div class="modal-title-wrap">
           <span class="modal-icon">📊</span>
-          <h3>Métricas y Cobertura del Dataset</h3>
+          <h3>Métricas Oficiales de la Base de Datos</h3>
         </div>
         <button class="modal-close" id="modal-stats-close">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="stats-grid" id="stats-grid">
+        <div class="stats-grid">
           <div class="stat-card">
             <span class="stat-val" id="stat-total">8.181</span>
-            <span class="stat-label">Comercios únicos</span>
+            <span class="stat-label">Locales Totales</span>
           </div>
           <div class="stat-card">
-            <span class="stat-val" id="stat-barrios">86+</span>
-            <span class="stat-label">Barrios y Localidades</span>
+            <span class="stat-val" id="stat-caba">--</span>
+            <span class="stat-label">Locales CABA</span>
           </div>
           <div class="stat-card">
-            <span class="stat-val" id="stat-contact">2.962</span>
-            <span class="stat-label">Con teléfono directo</span>
+            <span class="stat-val" id="stat-gba">--</span>
+            <span class="stat-label">Locales GBA</span>
           </div>
           <div class="stat-card">
-            <span class="stat-val" id="stat-sin-tacc">9</span>
+            <span class="stat-val" id="stat-sin-tacc">--</span>
             <span class="stat-label">Opciones Sin TACC</span>
           </div>
           <div class="stat-card">
-            <span class="stat-val" id="stat-vegano">61</span>
+            <span class="stat-val" id="stat-vegano">--</span>
             <span class="stat-label">Opciones Veganas</span>
           </div>
           <div class="stat-card">
-            <span class="stat-val" id="stat-coords">100%</span>
-            <span class="stat-label">Geocodificación GPS</span>
-          </div>
-        </div>
-
-        <div class="sources-breakdown">
-          <h4>Integración Multifuente (ETL)</h4>
-          <div class="source-item">
-            <span class="source-name">OpenStreetMap (Overpass API)</span>
-            <span class="source-count">5.441 registros (66.5%)</span>
-          </div>
-          <div class="source-item">
-            <span class="source-name">Buenos Aires Data (Gobierno CABA)</span>
-            <span class="source-count">2.740 registros (33.5%)</span>
+            <span class="stat-val" id="stat-vegetariano">--</span>
+            <span class="stat-label">Vegetarianos</span>
           </div>
         </div>
       </div>
@@ -293,11 +737,11 @@
     </div>
   </div>
 
-  <!-- Leaflet JS -->
+  <!-- Leaflet Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <!-- Leaflet MarkerCluster JS -->
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <!-- Main Application Script -->
+
+  <!-- App Script -->
   <script src="/static/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GastronomIA — Asistente Gastronómico CABA & GBA</title>
+  <meta name="description" content="Asistente conversacional inteligente y georreferenciado para descubrir restaurantes, bares y cafés en CABA y Gran Buenos Aires con filtros dietarios y datos oficiales.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- Leaflet MarkerCluster CSS for 8.181 venues clustering -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/static/styles.css">
+  
+  <!-- Favicon / Icon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20%220%20100%20100%22><text y=%22.9em%22 font-size=%2290%22>🍽️</text></svg>">
+</head>
+<body class="dark-theme">
+  <!-- Background ambient glowing orbs -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <!-- Header & Navigation -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand-logo">
+        <span class="logo-emoji">🍽️</span>
+        <div class="brand-text">
+          <h1>Gastronom<span class="highlight">IA</span></h1>
+          <span class="badge-coverage">CABA & GBA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats & Info Trigger -->
+    <div class="header-right">
+      <button id="btn-safety-info" class="header-btn safety-btn" title="Protocolo de Seguridad Alimentaria">
+        <span class="icon">⚠️</span>
+        <span class="btn-text">Seguridad Alimentaria</span>
+      </button>
+
+      <button id="btn-stats" class="header-btn" title="Estadísticas de la Base de Datos">
+        <span class="icon">📊</span>
+        <span class="btn-text">8.181 Locales</span>
+      </button>
+
+      <!-- View switch for mobile -->
+      <div class="view-toggle">
+        <button id="btn-toggle-chat" class="toggle-btn active" title="Ver Chat">💬 Chat</button>
+        <button id="btn-toggle-map" class="toggle-btn" title="Ver Mapa">🗺️ Mapa</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notice Banner: Dietary Safety Guarantee Reminder -->
+  <div class="safety-banner" id="safety-banner">
+    <div class="banner-content">
+      <span class="banner-icon">🛡️</span>
+      <p>
+        <strong>Compromiso de Salud:</strong> Información pública de <strong>BA Data</strong> y <strong>OpenStreetMap</strong>. 
+        Ante cualquier restricción (Sin TACC, veganismo, etc.), <em>recomendamos siempre contactar al local para confirmar protocolos antes de consumir</em>.
+      </p>
+      <button class="banner-dismiss" id="banner-dismiss" aria-label="Cerrar banner">×</button>
+    </div>
+  </div>
+
+  <!-- Main Application Container (Dual Panel Layout) -->
+  <main class="main-container">
+    
+    <!-- LEFT PANEL: Conversational Chat & Search -->
+    <section class="panel chat-panel" id="chat-section">
+      
+      <!-- Filter Toolbar -->
+      <div class="filter-toolbar">
+        <div class="filter-select-wrapper">
+          <label for="barrio-select" class="sr-only">Barrio o Municipio</label>
+          <select id="barrio-select" class="custom-select">
+            <option value="">📍 Todos los barrios (CABA y GBA)</option>
+          </select>
+        </div>
+
+        <div class="dietary-toggles">
+          <button type="button" class="chip-filter" data-diet="sin_tacc" id="chip-sin-tacc">
+            <span class="chip-dot dot-amber"></span> 🌾 Sin TACC
+          </button>
+          <button type="button" class="chip-filter" data-diet="vegano" id="chip-vegano">
+            <span class="chip-dot dot-green"></span> 🌱 Vegano
+          </button>
+          <button type="button" class="chip-filter" data-diet="vegetariano" id="chip-vegetariano">
+            <span class="chip-dot dot-emerald"></span> 🥗 Vegetariano
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Messages Scrollable Area -->
+      <div class="chat-messages" id="chat-messages">
+        
+        <!-- Welcome Message -->
+        <div class="message-row bot-row">
+          <div class="bot-avatar">🤖</div>
+          <div class="message-bubble bot-bubble">
+            <div class="bubble-header">
+              <span class="bot-name">GastronomIA</span>
+              <span class="time-stamp">Ahora</span>
+            </div>
+            <div class="bubble-content">
+              <p>¡Hola! Soy tu asistente gastronómico inteligente para la <strong>Ciudad de Buenos Aires</strong> y el <strong>Gran Buenos Aires</strong>.</p>
+              <p>Puedo ayudarte a encontrar lugares reales de nuestra base de <strong>8.181 establecimientos habilitados</strong> según zona, cocina o necesidades dietarias.</p>
+              
+              <div class="suggestions-container">
+                <span class="suggestions-label">💡 Probá preguntarme:</span>
+                <div class="suggestions-chips">
+                  <button class="suggestion-btn" data-query="Lugares con opciones sin tacc en CABA y Palermo">🌾 Opciones Sin TACC en CABA y Palermo</button>
+                  <button class="suggestion-btn" data-query="Pizzerías tradicionales en Palermo">🍕 Pizzerías tradicionales en Palermo</button>
+                  <button class="suggestion-btn" data-query="Restaurantes veganos en Palermo">🌱 Opciones Veganas en Palermo</button>
+                  <button class="suggestion-btn" data-query="Cafés de especialidad en San Telmo y Colegiales">☕ Cafés en San Telmo / Colegiales</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Chat Input Bar -->
+      <div class="chat-input-container">
+        <form id="chat-form" class="chat-form">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="user-input" 
+              placeholder="Preguntá lo que quieras: 'busco comida sin gluten en Belgrano'..." 
+              autocomplete="off"
+              required
+            >
+            <button type="submit" id="send-btn" class="send-btn" aria-label="Enviar mensaje">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        </form>
+        <div class="input-disclaimer">
+          🔒 Respuestas fundamentadas únicamente en registros oficiales. Sin alucinaciones de locales ni precios.
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Interactive Map & Results Cards -->
+    <section class="panel map-panel" id="map-section">
+      <div class="map-header">
+        <div class="map-title-wrap">
+          <span class="map-icon">🗺️</span>
+          <h2>Explorador Georreferenciado</h2>
+        </div>
+        <div class="map-actions">
+          <span id="markers-count" class="markers-badge">Cargando mapa...</span>
+          <button id="btn-recenter" class="recenter-btn" title="Centrar mapa en CABA / GBA">📍 Recentrar</button>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Canvas -->
+      <div id="map" class="map-canvas"></div>
+
+      <!-- Selected Venue Details Drawer -->
+      <div id="venue-drawer" class="venue-drawer hidden">
+        <div class="drawer-header">
+          <span class="drawer-tag" id="drawer-tag">Restaurante</span>
+          <button id="drawer-close" class="drawer-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <h3 id="drawer-title" class="drawer-title">Nombre del local</h3>
+        <p id="drawer-cuisine" class="drawer-cuisine">Tipo de cocina</p>
+        <p id="drawer-address" class="drawer-address">📍 Dirección, Barrio</p>
+
+        <!-- Dietary status badges in drawer -->
+        <div id="drawer-dietary" class="drawer-dietary"></div>
+
+        <!-- Direct Contact actions -->
+        <div class="drawer-actions">
+          <a id="drawer-tel" href="#" class="action-btn tel-btn" target="_blank">
+            <span>📞</span> Llamar / Confirmar
+          </a>
+          <a id="drawer-web" href="#" class="action-btn web-btn" target="_blank">
+            <span>🌐</span> Sitio Web
+          </a>
+        </div>
+        
+        <div class="drawer-source" id="drawer-source">Fuente: OpenStreetMap</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Food Safety Protocol (Directiva del PDF) -->
+  <div id="modal-safety" class="modal-overlay hidden">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">⚠️</span>
+          <h3>Directiva de Seguridad Alimentaria</h3>
+        </div>
+        <button class="modal-close" id="modal-safety-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="protocol-box">
+          <p>
+            El asistente <strong>GastronomIA</strong> no afirma con certeza absoluta que un comercio sea 100% libre de gluten (sin TACC), 
+            apto celíacos o vegano. Los datos se consolidan a partir de registros públicos de habilitaciones y etiquetas geográficas comunitarias, 
+            <strong>no de una certificación bromatológica individual en tiempo real</strong>.
+          </p>
+        </div>
+
+        <ul class="protocol-list">
+          <li>
+            <strong>📞 Contacto directo facilitado:</strong> Por diseño, GastronomIA prioriza y extrae el número telefónico y la web del local para que puedas llamar antes de asistir y validar su manipulación de alimentos.
+          </li>
+          <li>
+            <strong>🥖 Prevención de Contaminación Cruzada:</strong> Muchos establecimientos ofrecen opciones libres de gluten pero comparten hornos o utensilios. Preguntá siempre por su protocolo de celiaquía.
+          </li>
+          <li>
+            <strong>🏛️ Fuentes oficiales y comunitarias:</strong> Registros provistos por BA Data (Gobierno de la Ciudad de Buenos Aires) y OpenStreetMap (API Overpass).
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-primary" id="btn-safety-understood">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Dataset Stats Dashboard -->
+  <div id="modal-stats" class="modal-overlay hidden">
+    <div class="modal-content glass-card stats-modal-content">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">📊</span>
+          <h3>Métricas y Cobertura del Dataset</h3>
+        </div>
+        <button class="modal-close" id="modal-stats-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <span class="stat-val" id="stat-total">8.181</span>
+            <span class="stat-label">Comercios únicos</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="stat-barrios">86+</span>
+            <span class="stat-label">Barrios y Localidades</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="stat-contact">2.962</span>
+            <span class="stat-label">Con teléfono directo</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="stat-sin-tacc">9</span>
+            <span class="stat-label">Opciones Sin TACC</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="stat-vegano">61</span>
+            <span class="stat-label">Opciones Veganas</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="stat-coords">100%</span>
+            <span class="stat-label">Geocodificación GPS</span>
+          </div>
+        </div>
+
+        <div class="sources-breakdown">
+          <h4>Integración Multifuente (ETL)</h4>
+          <div class="source-item">
+            <span class="source-name">OpenStreetMap (Overpass API)</span>
+            <span class="source-count">5.441 registros (66.5%)</span>
+          </div>
+          <div class="source-item">
+            <span class="source-name">Buenos Aires Data (Gobierno CABA)</span>
+            <span class="source-count">2.740 registros (33.5%)</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-primary" id="btn-stats-close">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Leaflet MarkerCluster JS -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <!-- Main Application Script -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
