@@ -710,7 +710,11 @@ document.addEventListener("DOMContentLoaded", () => {
      8. CHAT ENGINE (VIEW 2 & HERO INTEGRATION)
      ========================================================================== */
   async function submitQuery(queryText, openInChatView = false) {
-    if (!queryText || state.isWaitingResponse) return;
+    if (!queryText) return;
+    if (state.isWaitingResponse) {
+      console.warn("Consulta previa en curso, esperando respuesta...");
+      return;
+    }
     state.isWaitingResponse = true;
 
     if (openInChatView) {
@@ -721,15 +725,20 @@ document.addEventListener("DOMContentLoaded", () => {
     appendChatBubble("user", queryText);
     const thinkingBubble = appendChatBubble("bot", "Foody está consultando la base de datos oficial...");
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           message: queryText,
           history: state.chatHistory.slice(-6)
         })
       });
+      clearTimeout(timeoutId);
       const data = await res.json();
       thinkingBubble.remove();
 
@@ -748,9 +757,14 @@ document.addEventListener("DOMContentLoaded", () => {
         appendChatBubble("bot", "Disculpá, no pude procesar la consulta en este momento.");
       }
     } catch (err) {
+      clearTimeout(timeoutId);
       thinkingBubble.remove();
       console.error("Chat error:", err);
-      appendChatBubble("bot", "Hubo un problema de conexión con el servidor de GastronomIA.");
+      if (err.name === "AbortError") {
+        appendChatBubble("bot", "La respuesta tardó unos segundos más de lo habitual. ¡Escribime de nuevo o probá buscar por barrio o comida!");
+      } else {
+        appendChatBubble("bot", "Hubo un problema de conexión con el servidor de GastronomIA.");
+      }
     } finally {
       state.isWaitingResponse = false;
     }

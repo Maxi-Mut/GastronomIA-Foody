@@ -1,11 +1,15 @@
 import re
 import json
+import time
+import asyncio
 import logging
 from typing import Dict, Any, List, Optional
 from backend.services.search_engine import search_restaurants, get_stats, get_all_barrios
 from backend.config import settings
 
 logger = logging.getLogger("GastronomIA.LLM")
+
+_gemini_cooldown_until: float = 0.0
 
 # Official prompt instructions strictly based on GastronomIA_Resumen_CABA_GBA.pdf
 SYSTEM_PROMPT = """Sos Foody (GastronomIA), un asistente gastronómico conversacional para la Ciudad Autónoma de Buenos Aires (CABA) y el Gran Buenos Aires (GBA).
@@ -368,7 +372,7 @@ async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] 
     """
     # 0. Conversational intent check (greetings, identity, thanks, farewells)
     conv_intent = detect_conversational_intent(message)
-    if conv_intent and not settings.GEMINI_API_KEY:
+    if conv_intent:
         if conv_intent == "greeting":
             return {
                 "reply": (
@@ -492,8 +496,10 @@ async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] 
                 fallback_info = {"venues": food_in_barrio["results"], "reason": "food_in_barrio"}
                 venues = food_in_barrio["results"]
 
-    # 3. Check if Gemini API or OpenAI is available
-    if settings.GEMINI_API_KEY and settings.DEFAULT_PROVIDER in ["gemini", "auto"]:
+    # 3. Check if Gemini API is available and not in cooldown
+    global _gemini_cooldown_until
+    now = time.time()
+    if settings.GEMINI_API_KEY and settings.DEFAULT_PROVIDER in ["gemini", "auto"] and now >= _gemini_cooldown_until:
         try:
             from google import genai
             from google.genai import types
@@ -522,13 +528,9 @@ async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] 
                 role = "model" if turn.get("role") in ("assistant", "model", "bot") else "user"
                 contents.append(types.Content(role=role, parts=[types.Part(text=text)]))
 
-            intent_hint = ""
-            if conv_intent:
-                intent_hint = f"\n<INTENCION_CONVERSACIONAL>{conv_intent}: Responder de forma cordial presentándote o conversando sin exigir resultados de base de datos.</INTENCION_CONVERSACIONAL>\n"
-
             # Mensaje actual: pregunta del usuario separada de los datos de la base
             contents.append(types.Content(role="user", parts=[types.Part(text=(
-                f"<PREGUNTA_DEL_USUARIO>\n{message}\n</PREGUNTA_DEL_USUARIO>{intent_hint}\n"
+                f"<PREGUNTA_DEL_USUARIO>\n{message}\n</PREGUNTA_DEL_USUARIO>\n"
                 f"<DATOS_BASE_OFICIAL total_encontrados=\"{total}\">\n{data_context}\n</DATOS_BASE_OFICIAL>"
             ))]))
 
@@ -538,35 +540,36 @@ async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] 
                 max_output_tokens=700,
             )
 
-            models_to_try = [settings.GEMINI_MODEL] + [
-                m for m in ("gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash") if m != settings.GEMINI_MODEL
-            ]
-            last_error = None
-            for model_name in models_to_try:
-                try:
-                    response = client.models.generate_content(
-                        model=model_name, contents=contents, config=config
-                    )
-                    reply_text = (response.text or "").strip()
-                    if reply_text:
-                        if filters.get("is_dietary") and "seguridad alimentaria" not in reply_text.lower() and "recomendación importante" not in reply_text.lower():
-                            reply_text += (
-                                "\n\n> ⚠️ **Recomendación importante de salud:** "
-                                "Los datos provienen de registros abiertos. Por favor, llamá o contactá al local "
-                                "antes de asistir para confirmar ingredientes y protocolos de contaminación cruzada."
-                            )
-                        return {
-                            "reply": reply_text,
-                            "venues": venues,
-                            "total_matches": total,
-                            "disclaimer_applied": filters.get("is_dietary", False),
-                            "filters_applied": filters
-                        }
-                except Exception as model_err:
-                    last_error = model_err
-                    logger.warning(f"Gemini model {model_name} failed: {model_err}")
-            if last_error:
-                raise last_error
+            try:
+                # Fast 3.5s timeout so user never waits if Google is experiencing lag or rate limit
+                response = await asyncio.wait_for(
+                    client.aio.models.generate_content(
+                        model=settings.GEMINI_MODEL, contents=contents, config=config
+                    ),
+                    timeout=3.5
+                )
+                reply_text = (response.text or "").strip()
+                if reply_text:
+                    if filters.get("is_dietary") and "seguridad alimentaria" not in reply_text.lower() and "recomendación importante" not in reply_text.lower():
+                        reply_text += (
+                            "\n\n> ⚠️ **Recomendación importante de salud:** "
+                            "Los datos provienen de registros abiertos. Por favor, llamá o contactá al local "
+                            "antes de asistir para confirmar ingredientes y protocolos de contaminación cruzada."
+                        )
+                    return {
+                        "reply": reply_text,
+                        "venues": venues,
+                        "total_matches": total,
+                        "disclaimer_applied": filters.get("is_dietary", False),
+                        "filters_applied": filters
+                    }
+            except Exception as model_err:
+                err_str = str(model_err)
+                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
+                    _gemini_cooldown_until = time.time() + 300  # 5 min cooldown when free tier daily quota is hit
+                    logger.warning("Gemini daily quota limit hit (429). Using autonomous agent for next 5 minutes.")
+                else:
+                    logger.warning(f"Gemini call timed out or failed: {model_err}. Falling back to autonomous agent.")
         except Exception as e:
             logger.warning(f"Error calling Gemini API: {e}. Falling back to autonomous local agent.")
 
