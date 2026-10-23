@@ -20,9 +20,23 @@ class Settings:
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip().replace('"', '').replace("'", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip() or "gemini-3.8-flash"
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip().replace('"', '').replace("'", "")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "").strip().replace('"', '').replace("'", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile").strip() or "llama-3.3-70b-versatile"
+    DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "").strip().replace('"', '').replace("'", "")
     
     _raw_provider = os.getenv("DEFAULT_PROVIDER", "auto").strip().replace('"', '').replace("'", "").lower()
-    DEFAULT_PROVIDER: str = "gemini" if "gemini" in _raw_provider else ("openai" if "openai" in _raw_provider else ("local" if "local" in _raw_provider else "auto"))
+    if "groq" in _raw_provider:
+        DEFAULT_PROVIDER = "groq"
+    elif "deepseek" in _raw_provider:
+        DEFAULT_PROVIDER = "deepseek"
+    elif "gemini" in _raw_provider:
+        DEFAULT_PROVIDER = "gemini"
+    elif "openai" in _raw_provider:
+        DEFAULT_PROVIDER = "openai"
+    elif "local" in _raw_provider:
+        DEFAULT_PROVIDER = "local"
+    else:
+        DEFAULT_PROVIDER = "auto"
     
     # Database
     DATABASE_PATH: str = os.path.join(PROJECT_ROOT, "gastronomia.db")

@@ -182,8 +182,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // "Abrir en Maps" buttons switch to Explorar view
-  document.getElementById("btn-open-maps").addEventListener("click", () => switchView("explorar"));
-  document.getElementById("btn-recenter").addEventListener("click", () => switchView("explorar"));
+  const btnOpenMaps = document.getElementById("btn-open-maps");
+  if (btnOpenMaps) {
+    btnOpenMaps.addEventListener("click", () => switchView("explorar"));
+  }
+  const btnRecenter = document.getElementById("btn-recenter");
+  if (btnRecenter) {
+    btnRecenter.addEventListener("click", () => switchView("explorar"));
+  }
 
   /* ==========================================================================
      3. LEAFLET MAPS: MINI MAP & EXPLORER MAP

@@ -364,6 +364,70 @@ def generate_local_reply(
 
     return "\n".join(response_lines)
 
+async def call_openai_compatible_api(
+    base_url: str,
+    api_key: str,
+    model: str,
+    message: str,
+    venues: List[Dict[str, Any]],
+    total: int,
+    history: Optional[List[Dict[str, str]]] = None
+) -> Optional[str]:
+    """Helper to query OpenAI-compatible APIs (Groq, DeepSeek, OpenRouter) with strict timeout."""
+    import httpx
+    data_context = json.dumps([{
+        "nombre": v["nombre"],
+        "categoria": v["tipo_categoria"],
+        "cocina": v["cocina"],
+        "direccion": v["direccion"],
+        "barrio": v["barrio_localidad"],
+        "telefono": v["telefono"],
+        "website": v["website"],
+        "sin_tacc": v["es_sin_tacc"],
+        "vegano": v["es_vegano"],
+        "fuente": v["fuente_dato"]
+    } for v in venues[:6]], ensure_ascii=False)
+
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT + "\n" + SCOPE_RESTRICTIONS}
+    ]
+    for turn in (history or [])[-4:]:
+        text = str(turn.get("content", "")).strip()[:1000]
+        if text:
+            role = "assistant" if turn.get("role") in ("assistant", "model", "bot") else "user"
+            messages.append({"role": role, "content": text})
+
+    user_payload = (
+        f"<PREGUNTA_DEL_USUARIO>\n{message}\n</PREGUNTA_DEL_USUARIO>\n"
+        f"<DATOS_BASE_OFICIAL total_encontrados=\"{total}\">\n{data_context}\n</DATOS_BASE_OFICIAL>"
+    )
+    messages.append({"role": "user", "content": user_payload})
+
+    try:
+        async with httpx.AsyncClient(timeout=6.0) as client:
+            resp = await client.post(
+                f"{base_url.rstrip('/')}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "temperature": 0.3,
+                    "max_tokens": 600
+                }
+            )
+            if resp.status_code == 200:
+                res_data = resp.json()
+                return res_data["choices"][0]["message"]["content"].strip()
+            else:
+                logger.warning(f"OpenAI compatible API error ({base_url}) {resp.status_code}: {resp.text[:200]}")
+                return None
+    except Exception as e:
+        logger.warning(f"Error querying {base_url}: {e}")
+        return None
+
 async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
     """
     Main entrypoint for user messages.
@@ -495,6 +559,58 @@ async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] 
             if food_in_barrio["total"] > 0:
                 fallback_info = {"venues": food_in_barrio["results"], "reason": "food_in_barrio"}
                 venues = food_in_barrio["results"]
+
+    # 2.8 Check Groq (Llama 3.3 / DeepSeek R1) if configured
+    if settings.GROQ_API_KEY and settings.DEFAULT_PROVIDER in ["groq", "auto"]:
+        groq_reply = await call_openai_compatible_api(
+            base_url="https://api.groq.com/openai/v1",
+            api_key=settings.GROQ_API_KEY,
+            model=settings.GROQ_MODEL,
+            message=message,
+            venues=venues,
+            total=total,
+            history=history
+        )
+        if groq_reply:
+            if filters.get("is_dietary") and "seguridad alimentaria" not in groq_reply.lower() and "recomendación importante" not in groq_reply.lower():
+                groq_reply += (
+                    "\n\n> ⚠️ **Recomendación importante de salud:** "
+                    "Los datos provienen de registros abiertos. Por favor, llamá o contactá al local "
+                    "antes de asistir para confirmar ingredientes y protocolos de contaminación cruzada."
+                )
+            return {
+                "reply": groq_reply,
+                "venues": venues,
+                "total_matches": total,
+                "disclaimer_applied": filters.get("is_dietary", False),
+                "filters_applied": filters
+            }
+
+    # 2.9 Check DeepSeek official API if configured
+    if settings.DEEPSEEK_API_KEY and settings.DEFAULT_PROVIDER in ["deepseek", "auto"]:
+        ds_reply = await call_openai_compatible_api(
+            base_url="https://api.deepseek.com",
+            api_key=settings.DEEPSEEK_API_KEY,
+            model="deepseek-chat",
+            message=message,
+            venues=venues,
+            total=total,
+            history=history
+        )
+        if ds_reply:
+            if filters.get("is_dietary") and "seguridad alimentaria" not in ds_reply.lower() and "recomendación importante" not in ds_reply.lower():
+                ds_reply += (
+                    "\n\n> ⚠️ **Recomendación importante de salud:** "
+                    "Los datos provienen de registros abiertos. Por favor, llamá o contactá al local "
+                    "antes de asistir para confirmar ingredientes y protocolos de contaminación cruzada."
+                )
+            return {
+                "reply": ds_reply,
+                "venues": venues,
+                "total_matches": total,
+                "disclaimer_applied": filters.get("is_dietary", False),
+                "filters_applied": filters
+            }
 
     # 3. Check if Gemini API is available and not in cooldown
     global _gemini_cooldown_until
