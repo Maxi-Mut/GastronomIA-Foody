@@ -151,7 +151,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (state.explorerMap) state.explorerMap.invalidateSize();
       }, 200);
     } else if (viewName === "chat") {
-      setTimeout(() => chatFullInput.focus(), 150);
+      if (!window.matchMedia("(pointer: coarse)").matches) {
+        setTimeout(() => chatFullInput.focus(), 150);
+      }
     } else if (viewName === "mis-lugares") {
       renderVisitedPlaces();
     } else if (viewName === "favoritos") {

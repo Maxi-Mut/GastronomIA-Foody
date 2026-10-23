@@ -43,6 +43,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def no_cache_frontend_assets(request, call_next):
+    """Force revalidation of HTML/CSS/JS so UI updates are always picked up."""
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path.endswith((".html", ".css", ".js")):
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
+
 class ChatRequest(BaseModel):
     message: str = Field(..., max_length=500)
     history: Optional[List[Dict[str, str]]] = []
