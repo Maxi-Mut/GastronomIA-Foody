@@ -549,6 +549,12 @@ async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] 
                     )
                     reply_text = (response.text or "").strip()
                     if reply_text:
+                        if filters.get("is_dietary") and "seguridad alimentaria" not in reply_text.lower() and "recomendación importante" not in reply_text.lower():
+                            reply_text += (
+                                "\n\n> ⚠️ **Recomendación importante de salud:** "
+                                "Los datos provienen de registros abiertos. Por favor, llamá o contactá al local "
+                                "antes de asistir para confirmar ingredientes y protocolos de contaminación cruzada."
+                            )
                         return {
                             "reply": reply_text,
                             "venues": venues,
