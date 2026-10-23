@@ -18,7 +18,7 @@ class Settings:
     
     # LLM Provider Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip().replace('"', '').replace("'", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-2.5-flash"
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip() or "gemini-3.8-flash"
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip().replace('"', '').replace("'", "")
     
     _raw_provider = os.getenv("DEFAULT_PROVIDER", "auto").strip().replace('"', '').replace("'", "").lower()

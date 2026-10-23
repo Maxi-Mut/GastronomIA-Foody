@@ -539,7 +539,7 @@ async def ask_gastronomia(message: str, history: Optional[List[Dict[str, str]]] 
             )
 
             models_to_try = [settings.GEMINI_MODEL] + [
-                m for m in ("gemini-2.5-flash", "gemini-2.0-flash") if m != settings.GEMINI_MODEL
+                m for m in ("gemini-3.8-flash", "gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash") if m != settings.GEMINI_MODEL
             ]
             last_error = None
             for model_name in models_to_try:
