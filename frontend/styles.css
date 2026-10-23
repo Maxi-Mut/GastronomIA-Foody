@@ -2107,15 +2107,16 @@ body.sidebar-collapsed.full-canvas-view .app-layout {
     padding: 0 0.6rem;
   }
   .btn-toggle-sidebar,
-  .badge-maps {
-    display: none;
+  .badge-maps,
+  .topbar-center {
+    display: none !important;
   }
   .brand-cluster {
     gap: 0.4rem;
     min-width: 0;
   }
   .foody-name {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
   .foody-sub {
     font-size: 0.85rem;
@@ -2124,11 +2125,11 @@ body.sidebar-collapsed.full-canvas-view .app-layout {
     font-size: 1.25rem;
   }
   .topbar-right {
-    gap: 0.1rem;
+    gap: 0.15rem;
   }
   .topbar-icon-btn {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
   }
   .user-avatar-wrap {
     width: 32px;
@@ -2136,14 +2137,48 @@ body.sidebar-collapsed.full-canvas-view .app-layout {
     margin-left: 0.2rem;
   }
 
-  /* ---- Layout de una sola columna (anula modos colapsado / canvas) ---- */
+  /* ---- Layout 100% ancho de pantalla completa en celular ---- */
+  .app-layout,
   body.foody-light-theme .app-layout,
   body.foody-light-theme.sidebar-collapsed .app-layout,
   body.foody-light-theme.full-canvas-view .app-layout,
   body.foody-light-theme.sidebar-collapsed.full-canvas-view .app-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
-    padding: 0.75rem 0.75rem calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 1rem);
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 1rem !important;
+    padding: 0.6rem 0.6rem calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 1.25rem) 0.6rem !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+
+  .main-content {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .view-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .foody-hero-card,
+  .category-cards-section,
+  .category-grid,
+  .toolbar-section,
+  .results-container,
+  .sidebar-right {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* ---- Sidebar izquierdo => barra de navegación inferior ---- */
@@ -2321,6 +2356,9 @@ body.sidebar-collapsed.full-canvas-view .app-layout {
 
   /* ---- Chat ---- */
   .chat-full-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     height: calc(100vh - var(--topbar-height) - var(--bottom-nav-height) - 1.75rem - env(safe-area-inset-bottom, 0px));
     height: calc(100dvh - var(--topbar-height) - var(--bottom-nav-height) - 1.75rem - env(safe-area-inset-bottom, 0px));
     border-radius: var(--radius-lg);
@@ -2387,6 +2425,9 @@ body.sidebar-collapsed.full-canvas-view .app-layout {
 
   /* ---- Explorar (mapa) ---- */
   .explorer-map-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     height: calc(100vh - var(--topbar-height) - var(--bottom-nav-height) - 1.75rem - env(safe-area-inset-bottom, 0px));
     height: calc(100dvh - var(--topbar-height) - var(--bottom-nav-height) - 1.75rem - env(safe-area-inset-bottom, 0px));
     border-radius: var(--radius-lg);
