@@ -88,7 +88,7 @@ def test_all():
     print("      OK: Todos los endpoints REST responden con datos y esquemas válidos.")
 
     print("\n==================================================================")
-    print(" ✅  TODAS LAS PRUEBAS AUTOMATIZADAS PASARON SATISFACTORIAMENTE!")
+    print(" [OK] TODAS LAS PRUEBAS AUTOMATIZADAS PASARON SATISFACTORIAMENTE!")
     print("==================================================================")
 
 if __name__ == "__main__":
