@@ -1,0 +1,36 @@
+{
+  "name": "gastronomia---foody",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "test": "node scripts/test_system.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maxi-Mut/GastronomIA-Google.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Maxi-Mut/GastronomIA-Google/issues"
+  },
+  "homepage": "https://github.com/Maxi-Mut/GastronomIA-Google#readme",
+  "description": "",
+  "dependencies": {
+    "autoprefixer": "^10.6.2",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.63.0",
+    "next": "^14.2.15",
+    "postcss": "^8.5.32",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.17"
+  }
+}

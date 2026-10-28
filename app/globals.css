@@ -1,0 +1,56 @@
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --foody-sidebar: #133829;
+    --foody-bg: #F8F7F2;
+    --foody-card: #FFFFFF;
+    --foody-text: #222623;
+  }
+  
+  .dark {
+    --foody-sidebar: #0B2219;
+    --foody-bg: #111412;
+    --foody-card: #1B211D;
+    --foody-text: #F1F4F2;
+  }
+
+  body {
+    background-color: var(--foody-bg);
+    color: var(--foody-text);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(19, 56, 41, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(19, 56, 41, 0.4);
+}
+
+@keyframes floatMascot {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+.floating-mascot {
+  animation: floatMascot 4s ease-in-out infinite;
+}

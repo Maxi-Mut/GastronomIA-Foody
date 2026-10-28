@@ -19,6 +19,13 @@ __pycache__/
 .vscode/
 .idea/
 
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+*.db-journal
+
 # IMPORTANTE: NO estamos ignorando gastronomia.db porque 
 # necesitamos que se suba a GitHub para que Render la use.
 # Tampoco ignoramos el dataset de excel si es necesario para el ETL.
