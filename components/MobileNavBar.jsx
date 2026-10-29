@@ -74,3 +74,4 @@ export default function MobileNavBar({ activeView, setActiveView, favoritesCount
     </nav>
   );
 }
+

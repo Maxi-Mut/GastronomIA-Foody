@@ -14,8 +14,16 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
       if (typeof window === 'undefined' || !mapContainerRef.current) return;
 
       const L = (await import('leaflet')).default;
+      window.L = L;
 
-      // Ensure container isn't already initialized
+      // Cargar Leaflet MarkerCluster dinámicamente en el cliente
+      try {
+        await import('leaflet.markercluster');
+      } catch (err) {
+        console.warn('Leaflet MarkerCluster no disponible, usando LayerGroup estándar:', err);
+      }
+
+      // Inicializar el mapa si aún no existe
       if (!mapInstanceRef.current && mapContainerRef.current) {
         const map = L.map(mapContainerRef.current, {
           center: [-34.6037, -58.3816],
@@ -23,14 +31,30 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
           scrollWheelZoom: true,
         });
 
-        // Mosaico 100% abierto y libre de OpenStreetMap
+        // Mosaico abierto y libre de OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           maxZoom: 19
         }).addTo(map);
 
-        const markersLayer = L.layerGroup().addTo(map);
-        markersLayerRef.current = markersLayer;
+        // Crear grupo de clusters interactivo (círculos con contador y zoom progresivo)
+        let clusterLayer;
+        if (typeof L.markerClusterGroup === 'function') {
+          clusterLayer = L.markerClusterGroup({
+            maxClusterRadius: 45,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            chunkedLoading: true,
+            removeOutsideVisibleBounds: true,
+            animate: true
+          });
+        } else {
+          clusterLayer = L.layerGroup();
+        }
+
+        map.addLayer(clusterLayer);
+        markersLayerRef.current = clusterLayer;
         mapInstanceRef.current = map;
 
         // Auto invalidate size on resize
@@ -48,6 +72,7 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
       markersLayer.clearLayers();
 
       const validVenues = venues.filter(v => v.latitud && v.longitud);
+      const markersBatch = [];
 
       validVenues.forEach((venue) => {
         // Determinación de color e icono según categoría y restricciones
@@ -141,8 +166,15 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
         }
 
         marker.bindPopup(popupContent);
-        markersLayer.addLayer(marker);
+        markersBatch.push(marker);
       });
+
+      // Añadir marcadores al grupo de clusters de forma masiva y optimizada
+      if (typeof markersLayer.addLayers === 'function') {
+        markersLayer.addLayers(markersBatch);
+      } else {
+        markersBatch.forEach(m => markersLayer.addLayer(m));
+      }
 
       // Asegurar redimensionado
       setTimeout(() => {
