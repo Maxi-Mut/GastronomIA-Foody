@@ -71,7 +71,7 @@ export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], fa
 
           <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-neutral-900 dark:text-white leading-tight">
             ¡Hola! Soy Foody,<br />
-            tu asistente de <span className="text-[#133829] dark:text-emerald-400">GastronomIA</span> <span className="text-[#D4AF37]">✨</span>
+            tu asistente de <span className="text-[#133829] dark:text-emerald-400">GastronomIA</span>
           </h1>
 
           <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed max-w-xl">

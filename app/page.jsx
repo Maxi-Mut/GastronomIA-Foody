@@ -68,7 +68,7 @@ export default function Home() {
     {
       id: 1,
       remitente: 'foody',
-      respuesta: '¡Hola! Soy Foody, tu asistente gastronómico personal de GastronomIA ✨\n\nPuedo recomendarte restaurantes, bodegones históricos, opciones sin TACC, veganas o armarte rutas gastronómicas personalizadas por barrio en CABA y Gran Buenos Aires.\n\n¿Qué tenés ganas de comer hoy?',
+      respuesta: '¡Hola! Soy Foody, tu asistente gastronómico personal de GastronomIA\n\nPuedo recomendarte restaurantes, bodegones históricos, opciones sin TACC, veganas o armarte rutas gastronómicas personalizadas por barrio en CABA y Gran Buenos Aires.\n\n¿Qué tenés ganas de comer hoy?',
       parametros_interpretados: null,
       resultados: []
     }
