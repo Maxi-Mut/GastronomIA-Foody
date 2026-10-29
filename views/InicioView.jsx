@@ -49,16 +49,16 @@ export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], fa
   return (
     <div className="space-y-6 animate-fadeIn pb-16">
       {/* 1. Hero Card: Bienvenida de Foody */}
-      <section className="bg-white dark:bg-[#1E2320] rounded-3xl p-6 sm:p-8 shadow-soft border border-[#E8E6DF] dark:border-neutral-800 flex flex-col md:flex-row items-center gap-6 sm:gap-8">
+      <section className="bg-white dark:bg-[#1E2320] rounded-3xl p-5 sm:p-8 shadow-soft border border-[#E8E6DF] dark:border-neutral-800 flex flex-col md:flex-row items-center gap-5 sm:gap-8">
         {/* Ilustración de Foody */}
-        <div className="shrink-0 w-44 h-44 sm:w-52 sm:h-52 relative flex items-center justify-center bg-[#FAF8F2] dark:bg-neutral-800/40 rounded-3xl p-4 border border-amber-900/5">
+        <div className="shrink-0 w-36 h-36 sm:w-48 sm:h-48 md:w-52 md:h-52 relative flex items-center justify-center bg-[#FAF8F2] dark:bg-neutral-800/40 rounded-3xl p-3 sm:p-4 border border-amber-900/5">
           <Image
             src="/foody_mascot.png"
             alt="Foody Robot Chef"
             width={180}
             height={180}
             priority
-            className="object-contain floating-mascot"
+            className="object-contain floating-mascot max-w-full max-h-full"
           />
         </div>
 

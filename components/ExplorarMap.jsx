@@ -23,7 +23,7 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
           scrollWheelZoom: true,
         });
 
-        // Mosaico 100% abierto y libre de OpenStreetMap (sin API Key requerida ni marcas de agua)
+        // Mosaico 100% abierto y libre de OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           maxZoom: 19
@@ -32,6 +32,13 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
         const markersLayer = L.layerGroup().addTo(map);
         markersLayerRef.current = markersLayer;
         mapInstanceRef.current = map;
+
+        // Auto invalidate size on resize
+        window.addEventListener('resize', () => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.invalidateSize();
+          }
+        });
       }
 
       if (!isMounted || !mapInstanceRef.current || !markersLayerRef.current) return;
@@ -78,74 +85,69 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
               align-items: center;
               justify-content: center;
               box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-              border: 2px solid #ffffff;
+              border: 2px solid white;
+              cursor: pointer;
             ">
-              <span style="transform: rotate(45deg); font-size: 15px;">${symbol}</span>
+              <span style="transform: rotate(45deg); font-size: 14px; line-height: 1;">${symbol}</span>
             </div>
           `,
           iconSize: [34, 34],
           iconAnchor: [17, 34],
-          popupAnchor: [0, -34]
+          popupAnchor: [0, -34],
         });
 
         const marker = L.marker([venue.latitud, venue.longitud], { icon: customIcon });
 
+        // Popup interactivo
         const popupContent = document.createElement('div');
-        popupContent.className = 'map-popup-card';
-        popupContent.style.minWidth = '220px';
+        popupContent.className = 'p-1 font-sans';
         popupContent.innerHTML = `
-          <div style="padding: 2px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 10px; font-weight: 800; background: #133829; color: white; padding: 2px 7px; border-radius: 999px;">
-                ${venue.categoria || 'Gastronomía'}
+          <div style="font-family: inherit; max-width: 210px;">
+            <div style="font-weight: 800; font-size: 14px; color: #133829; margin-bottom: 2px;">
+              ${venue.nombre}
+            </div>
+            <div style="font-size: 11px; color: #666; margin-bottom: 6px;">
+              📍 ${venue.barrio || ''} ${venue.zona ? `(${venue.zona})` : ''}
+            </div>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;">
+              <span style="background: #eef5f1; color: #133829; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px;">
+                ${venue.cocina || venue.categoria}
               </span>
-              <span style="font-size: 11px; font-weight: 800; color: #D4AF37;">
-                ${venue.rango_precio || '$$'}
+              <span style="background: #fdf6e7; color: #8f6409; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px;">
+                ${venue.rango_precio}
               </span>
             </div>
-            <h4 style="font-size: 13px; font-weight: 800; margin: 4px 0 2px 0; color: #111;">
-              ${venue.nombre}
-            </h4>
-            <p style="font-size: 11px; color: #666; margin: 0 0 6px 0;">
-              📍 ${venue.direccion}, ${venue.barrio}
-            </p>
-            <p style="font-size: 11px; color: #333; margin: 0 0 8px 0; line-height: 1.3;">
-              ${venue.por_que_recomendamos ? venue.por_que_recomendamos.slice(0, 95) + '...' : ''}
-            </p>
-            <button id="btn-popup-venue-${venue.id}" style="
+            <button id="btn-venue-${venue.id}" style="
               width: 100%;
               background: #133829;
               color: white;
               border: none;
-              border-radius: 8px;
               padding: 6px 10px;
+              border-radius: 8px;
               font-size: 11px;
               font-weight: 700;
               cursor: pointer;
             ">
-              Ver Ficha Completa →
+              Ver Ficha Completa
             </button>
           </div>
         `;
 
-        marker.bindPopup(popupContent);
-        marker.on('popupopen', () => {
-          const btn = document.getElementById(`btn-popup-venue-${venue.id}`);
-          if (btn) {
-            btn.onclick = () => {
-              if (onOpenVenue) onOpenVenue(venue);
-            };
-          }
-        });
+        const btn = popupContent.querySelector(`#btn-venue-${venue.id}`);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            if (onOpenVenue) onOpenVenue(venue);
+          });
+        }
 
-        marker.addTo(markersLayer);
+        marker.bindPopup(popupContent);
+        markersLayer.addLayer(marker);
       });
 
-      // Fit bounds if we have valid points
-      if (validVenues.length > 0) {
-        const bounds = L.latLngBounds(validVenues.map(v => [v.latitud, v.longitud]));
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
-      }
+      // Asegurar redimensionado
+      setTimeout(() => {
+        if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+      }, 200);
     }
 
     initMap();
@@ -167,24 +169,25 @@ export default function ExplorarMap({ venues = [], onOpenVenue }) {
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
       mapInstanceRef.current.setView([-34.6037, -58.3816], 12);
+      mapInstanceRef.current.invalidateSize();
     }
   };
 
   return (
-    <div className="relative w-full h-[520px] rounded-3xl overflow-hidden shadow-card border border-[#E8E6DF] dark:border-neutral-800">
+    <div className="relative w-full h-[360px] sm:h-[440px] md:h-[520px] rounded-3xl overflow-hidden shadow-card border border-[#E8E6DF] dark:border-neutral-800">
       <div ref={mapContainerRef} className="w-full h-full z-10" />
 
       {/* Botón flotante para recentrar mapa */}
       <button
         onClick={handleRecenter}
-        className="absolute top-4 right-4 z-20 px-3.5 py-2 rounded-xl bg-white/95 dark:bg-[#1E2320]/95 backdrop-blur-md text-[#133829] dark:text-emerald-400 font-bold text-xs shadow-md border border-neutral-200 dark:border-neutral-700 hover:bg-white transition-all flex items-center space-x-1.5"
+        className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white/95 dark:bg-[#1E2320]/95 backdrop-blur-md text-[#133829] dark:text-emerald-400 font-bold text-xs shadow-md border border-neutral-200 dark:border-neutral-700 hover:bg-white transition-all flex items-center space-x-1.5"
         title="Recentrar mapa en CABA"
       >
-        <span>📍 Recentrar CABA</span>
+        <span>📍 Recentrar</span>
       </button>
 
       {/* Leyenda de pines en el mapa */}
-      <div className="absolute bottom-4 left-4 z-20 px-3 py-2 rounded-2xl bg-white/95 dark:bg-[#1E2320]/95 backdrop-blur-md shadow-md border border-neutral-200 dark:border-neutral-700 flex items-center space-x-3 text-[11px] font-semibold text-neutral-700 dark:text-neutral-300">
+      <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-20 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl bg-white/95 dark:bg-[#1E2320]/95 backdrop-blur-md shadow-md border border-neutral-200 dark:border-neutral-700 flex flex-wrap items-center gap-2 sm:space-x-3 text-[10px] sm:text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 max-w-[85%]">
         <span className="flex items-center space-x-1">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" />
           <span>Sin TACC</span>

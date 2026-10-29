@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Sidebar from '@/components/Sidebar';
 import RightPanel from '@/components/RightPanel';
 import PersistentChatBar from '@/components/PersistentChatBar';
+import MobileNavBar from '@/components/MobileNavBar';
 import VenueModal from '@/components/VenueModal';
 
 import InicioView from '@/views/InicioView';
@@ -13,7 +15,7 @@ import LugaresView from '@/views/LugaresView';
 import FavoritosView from '@/views/FavoritosView';
 import PerfilView from '@/views/PerfilView';
 
-import { Search, Sun, Moon, Bell, Sparkles } from 'lucide-react';
+import { Search, Sun, Moon, Bell, Sparkles, Menu } from 'lucide-react';
 
 export default function Home() {
   const [activeView, setActiveView] = useState('inicio');
@@ -25,13 +27,30 @@ export default function Home() {
   const [topSearch, setTopSearch] = useState('');
   const [customApiKey, setCustomApiKey] = useState('');
 
-  // Cargar API Key personalizada si el usuario la guardó en el navegador
+  // Estados de responsividad y colapso
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Cargar preferencias guardadas en el navegador
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedKey = localStorage.getItem('foody_ai_api_key');
       if (storedKey) setCustomApiKey(storedKey);
+
+      const savedCollapse = localStorage.getItem('foody_sidebar_collapsed');
+      if (savedCollapse === 'true') setIsSidebarCollapsed(true);
     }
   }, []);
+
+  const handleToggleCollapse = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('foody_sidebar_collapsed', String(next));
+      }
+      return next;
+    });
+  };
 
   const handleSaveApiKey = (key) => {
     setCustomApiKey(key);
@@ -177,26 +196,54 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen flex ${darkMode ? 'dark bg-[#111412] text-white' : 'bg-[#F8F7F2] text-[#222623]'}`}>
-      {/* 1. Sidebar Izquierdo Fijo */}
+      {/* 1. Sidebar (Escritorio colapsable + Drawer Móvil) */}
       <Sidebar
         activeView={activeView}
         setActiveView={setActiveView}
         favoritesCount={favorites.length}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleCollapse}
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* 2. Panel Central Principal */}
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative">
-        {/* Top Bar */}
-        <header className="sticky top-0 z-20 px-6 py-4 bg-[#F8F7F2]/90 dark:bg-[#111412]/90 backdrop-blur-md border-b border-[#E8E6DF] dark:border-neutral-800 flex items-center justify-between gap-4">
+      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative w-full">
+        {/* Top Bar Responsivo */}
+        <header className="sticky top-0 z-20 px-3.5 sm:px-6 py-3 sm:py-4 bg-[#F8F7F2]/90 dark:bg-[#111412]/90 backdrop-blur-md border-b border-[#E8E6DF] dark:border-neutral-800 flex items-center justify-between gap-2.5 sm:gap-4">
+          {/* Botón Menú Hamburguesa en Mobile */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden p-2 rounded-2xl bg-white dark:bg-[#1E2320] border border-[#E8E6DF] dark:border-neutral-700 text-[#133829] dark:text-emerald-400 shadow-sm shrink-0 hover:bg-neutral-50 transition-colors"
+            title="Abrir menú"
+            aria-label="Abrir menú principal"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          {/* Logo en Mobile */}
+          <div
+            onClick={() => setActiveView('inicio')}
+            className="flex items-center space-x-1.5 md:hidden cursor-pointer shrink-0"
+            title="Foody Inicio"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white/40 dark:bg-neutral-800 p-0.5 ring-1 ring-[#D4AF37]/50 flex items-center justify-center overflow-hidden">
+              <Image src="/foody_mascot.png" alt="Foody" width={28} height={28} className="object-contain" />
+            </div>
+            <span className="font-extrabold text-base tracking-tight font-display text-[#133829] dark:text-white hidden sm:inline">
+              Foody
+            </span>
+          </div>
+
           {/* Barra de búsqueda redondeada "¿Qué estás buscando hoy?" */}
           <form onSubmit={handleTopSearchSubmit} className="relative flex-1 max-w-xl">
-            <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Search className="w-4 h-4 absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               type="text"
               value={topSearch}
               onChange={(e) => setTopSearch(e.target.value)}
-              placeholder="¿Qué estás buscando hoy en Buenos Aires y GBA? (presioná Enter para preguntar)"
-              className="w-full pl-11 pr-10 py-2.5 rounded-full bg-white dark:bg-[#1E2320] text-xs sm:text-sm text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 border border-[#E8E6DF] dark:border-neutral-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#133829]"
+              placeholder="¿Qué querés comer hoy en CABA o GBA?..."
+              className="w-full pl-9 sm:pl-11 pr-9 sm:pr-10 py-2 sm:py-2.5 rounded-full bg-white dark:bg-[#1E2320] text-xs sm:text-sm text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 border border-[#E8E6DF] dark:border-neutral-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#133829]"
             />
             {topSearch.trim() && (
               <button
@@ -209,11 +256,11 @@ export default function Home() {
           </form>
 
           {/* Iconos de Modo Oscuro, Notificaciones y Avatar */}
-          <div className="flex items-center space-x-3 shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
             {/* Toggle Modo Oscuro / Claro */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2.5 rounded-full bg-white dark:bg-[#1E2320] border border-[#E8E6DF] dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors shadow-sm"
+              className="p-2 sm:p-2.5 rounded-full bg-white dark:bg-[#1E2320] border border-[#E8E6DF] dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors shadow-sm"
               title={darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
@@ -221,8 +268,8 @@ export default function Home() {
 
             {/* Notificaciones */}
             <button
-              onClick={() => alert('GastronomIA: Base conectada con 18+ establecimientos validados y registros oficiales GCBA / OpenStreetMap.')}
-              className="relative p-2.5 rounded-full bg-white dark:bg-[#1E2320] border border-[#E8E6DF] dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors shadow-sm"
+              onClick={() => alert('GastronomIA: Base conectada con catálogo masivo oficial de CABA y GBA.')}
+              className="relative p-2 sm:p-2.5 rounded-full bg-white dark:bg-[#1E2320] border border-[#E8E6DF] dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors shadow-sm hidden xs:flex items-center justify-center"
               title="Notificaciones y Novedades"
             >
               <Bell className="w-4 h-4" />
@@ -232,7 +279,7 @@ export default function Home() {
             {/* Avatar de Usuario */}
             <button
               onClick={() => setActiveView('perfil')}
-              className="w-9 h-9 rounded-full bg-[#133829] text-white flex items-center justify-center font-bold text-xs ring-2 ring-emerald-500/30 hover:ring-emerald-500 transition-all shadow-sm"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#133829] text-white flex items-center justify-center font-bold text-xs ring-2 ring-emerald-500/30 hover:ring-emerald-500 transition-all shadow-sm shrink-0"
               title="Ver mi perfil y preferencias"
             >
               GP
@@ -240,8 +287,8 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Contenedor de la Vista Activa */}
-        <div className="flex-1 p-5 sm:p-7 max-w-5xl mx-auto w-full">
+        {/* Contenedor de la Vista Activa con espaciado móvil ergonómico */}
+        <div className="flex-1 p-3.5 sm:p-5 md:p-7 max-w-5xl mx-auto w-full pb-28 md:pb-10">
           {activeView === 'inicio' && (
             <InicioView
               onQuickPrompt={handleSendMessage}
@@ -306,11 +353,18 @@ export default function Home() {
         />
       </main>
 
-      {/* 3. Panel Derecho Contextual */}
+      {/* 3. Panel Derecho Contextual (solo desktop amplio) */}
       <RightPanel
         onSelectZone={handleSelectZone}
         onOpenExperiences={() => setActiveView('mis-lugares')}
         onAskFoodyExperience={() => handleSendMessage('Armame una ruta gastronómica completa para hoy con los mejores platos')}
+      />
+
+      {/* 4. Barra de Navegación Inferior para Celulares */}
+      <MobileNavBar
+        activeView={activeView}
+        setActiveView={setActiveView}
+        favoritesCount={favorites.length}
       />
 
       {/* Modal / Ficha del Establecimiento */}

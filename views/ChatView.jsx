@@ -141,9 +141,9 @@ export default function ChatView({
   return (
     <div className="space-y-6 pb-20 animate-fadeIn">
       {/* Header del Chat */}
-      <div className="bg-white dark:bg-[#1E2320] rounded-3xl p-4 sm:p-5 shadow-soft border border-[#E8E6DF] dark:border-neutral-800 flex items-center justify-between">
-        <div className="flex items-center space-x-3.5">
-          <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[#FAF8F2] dark:bg-neutral-800 p-1 border border-emerald-600/30">
+      <div className="bg-white dark:bg-[#1E2320] rounded-3xl p-4 sm:p-5 shadow-soft border border-[#E8E6DF] dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+        <div className="flex items-center space-x-3 sm:space-x-3.5">
+          <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-[#FAF8F2] dark:bg-neutral-800 p-1 border border-emerald-600/30 shrink-0">
             <Image
               src="/foody_mascot.png"
               alt="Foody"
@@ -151,28 +151,28 @@ export default function ChatView({
               height={48}
               className="object-contain"
             />
-            <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="font-extrabold text-base text-neutral-900 dark:text-neutral-100 font-display">
-                Foody — Tu Asistente Gastronómico
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h2 className="font-extrabold text-sm sm:text-base text-neutral-900 dark:text-neutral-100 font-display">
+                Foody — Asistente Gastronómico
               </h2>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+              <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold ${
                 customApiKey
                   ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
                   : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
               }`}>
-                {customApiKey ? '🤖 IA Externa Conectada' : '⚡ Motor Autónomo Activo'}
+                {customApiKey ? '🤖 IA Externa' : '⚡ Motor Autónomo'}
               </span>
             </div>
-            <p className="text-xs text-neutral-500">
-              Conversación en lenguaje natural fundamentada en la base oficial de CABA y GBA
+            <p className="text-[11px] sm:text-xs text-neutral-500 line-clamp-1">
+              Conversación inteligente sobre la gastronomía oficial de CABA y GBA
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 self-end sm:self-auto">
           {/* Botón para Configurar API Key */}
           <button
             onClick={() => setShowKeyModal(true)}
