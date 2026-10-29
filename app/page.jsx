@@ -26,12 +26,13 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [topSearch, setTopSearch] = useState('');
   const [customApiKey, setCustomApiKey] = useState('');
+  const [serverAiStatus, setServerAiStatus] = useState({ ia_conectada: false, proveedor: '' });
 
   // Estados de responsividad y colapso
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Cargar preferencias guardadas en el navegador
+  // Cargar preferencias guardadas en el navegador y verificar conexión IA en el servidor
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedKey = localStorage.getItem('foody_ai_api_key');
@@ -40,6 +41,15 @@ export default function Home() {
       const savedCollapse = localStorage.getItem('foody_sidebar_collapsed');
       if (savedCollapse === 'true') setIsSidebarCollapsed(true);
     }
+
+    fetch('/api/chat')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.ia_conectada) {
+          setServerAiStatus(data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleToggleCollapse = () => {
@@ -308,6 +318,7 @@ export default function Home() {
               onQuickPrompt={handleSendMessage}
               customApiKey={customApiKey}
               onSaveApiKey={handleSaveApiKey}
+              serverAiStatus={serverAiStatus}
             />
           )}
 

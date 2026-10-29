@@ -108,7 +108,8 @@ export default function ChatView({
   isPending,
   onQuickPrompt,
   customApiKey,
-  onSaveApiKey
+  onSaveApiKey,
+  serverAiStatus = null
 }) {
   const bottomRef = useRef(null);
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -159,11 +160,13 @@ export default function ChatView({
                 Foody — Asistente Gastronómico
               </h2>
               <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                customApiKey
+                customApiKey || serverAiStatus?.ia_conectada
                   ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
                   : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
               }`}>
-                {customApiKey ? '🤖 IA Externa' : '⚡ Motor Autónomo'}
+                {customApiKey
+                  ? '🤖 Clave Personal Activa'
+                  : (serverAiStatus?.ia_conectada ? `🤖 ${serverAiStatus.proveedor} Activo` : '⚡ Motor Autónomo')}
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-neutral-500 line-clamp-1">

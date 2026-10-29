@@ -1,6 +1,20 @@
 import { NextResponse } from 'next/server';
 import backendOrquestador from '@/lib/backendOrquestador';
 
+export async function GET() {
+  const hasKey = !!(process.env.GEMINI_API_KEY || process.env.AI_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY);
+  let proveedor = 'autonomo';
+  if (process.env.GEMINI_API_KEY || process.env.AI_API_KEY) proveedor = 'Google Gemini';
+  else if (process.env.GROQ_API_KEY) proveedor = 'Groq';
+  else if (process.env.OPENAI_API_KEY) proveedor = 'OpenAI';
+
+  return NextResponse.json({
+    ia_conectada: hasKey,
+    proveedor,
+    modelo: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'
+  });
+}
+
 export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
