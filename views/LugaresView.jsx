@@ -28,10 +28,10 @@ export default function LugaresView({ onOpenVenue, venues = [] }) {
   return (
     <div className="space-y-6 pb-20 animate-fadeIn">
       {/* Header */}
-      <div className="bg-white dark:bg-[#1E2320] rounded-3xl p-6 shadow-soft border border-[#E8E6DF] dark:border-neutral-800 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#1E2320] rounded-3xl p-4 sm:p-6 shadow-soft border border-[#E8E6DF] dark:border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
         <div>
-          <h2 className="text-xl font-extrabold font-display text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
-            <Bookmark className="w-5 h-5 text-[#133829] dark:text-emerald-400" />
+          <h2 className="text-lg sm:text-xl font-extrabold font-display text-neutral-900 dark:text-neutral-100 flex items-center space-x-2">
+            <Bookmark className="w-5 h-5 text-[#133829] dark:text-emerald-400 shrink-0" />
             <span>Mis Lugares y Rutas Gastronómicas</span>
           </h2>
           <p className="text-xs text-neutral-500 mt-1">
@@ -41,7 +41,7 @@ export default function LugaresView({ onOpenVenue, venues = [] }) {
 
         <button
           onClick={() => alert('¡Función de crear nueva ruta activada! Podés pedirle a Foody en el chat que te arme un itinerario a medida.')}
-          className="px-4 py-2 rounded-2xl bg-[#133829] text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm hover:bg-[#1a4a37] transition-colors"
+          className="self-start sm:self-auto px-4 py-2 rounded-2xl bg-[#133829] text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm hover:bg-[#1a4a37] transition-colors shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Crear Ruta</span>
