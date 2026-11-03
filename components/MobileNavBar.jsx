@@ -7,7 +7,7 @@ export default function MobileNavBar({ activeView, setActiveView, favoritesCount
   const ITEMS = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'explorar', label: 'Explorar', icon: Compass },
-    { id: 'chat', label: 'Foody IA', icon: Sparkles, isSpecial: true },
+    { id: 'chat', label: 'Foody', icon: Sparkles, isSpecial: true },
     { id: 'mis-lugares', label: 'Mis lugares', icon: Bookmark },
     { id: 'favoritos', label: 'Favoritos', icon: Heart },
     { id: 'perfil', label: 'Perfil', icon: User },

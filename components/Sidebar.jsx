@@ -74,10 +74,7 @@ export default function Sidebar({
                 />
               </div>
               <div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="font-extrabold text-lg tracking-tight text-white font-display">Foody</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#D4AF37] text-[#133829] font-bold">IA</span>
-                </div>
+                <span className="font-extrabold text-lg tracking-tight text-white font-display">Foody</span>
                 <p className="text-[11px] text-emerald-200/80 font-medium">GastronomIA Móvil</p>
               </div>
             </div>
@@ -175,10 +172,7 @@ export default function Sidebar({
 
               {!isCollapsed && (
                 <div className="overflow-hidden">
-                  <div className="flex items-center space-x-1.5">
-                    <span className="font-extrabold text-xl tracking-tight text-white font-display">Foody</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#D4AF37] text-[#133829] font-bold">IA</span>
-                  </div>
+                  <span className="font-extrabold text-xl tracking-tight text-white font-display">Foody</span>
                   <p className="text-[11px] text-emerald-200/80 font-medium whitespace-nowrap">
                     GastronomIA
                   </p>
