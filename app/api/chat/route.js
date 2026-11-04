@@ -30,8 +30,17 @@ export async function POST(request) {
     }
 
     const apiKey = body.apiKey || request.headers.get('x-ai-api-key') || '';
+    const perfil = body.perfil || null;
+    const historial = body.historial || null;
 
-    const resultado = await backendOrquestador.procesarConsulta(consulta, idUsuario, idConversacion, apiKey);
+    const resultado = await backendOrquestador.procesarConsulta(
+      consulta,
+      idUsuario,
+      idConversacion,
+      apiKey,
+      perfil,
+      historial
+    );
     return NextResponse.json(resultado, { status: 200 });
   } catch (error) {
     console.error('Error en POST /api/chat:', error);

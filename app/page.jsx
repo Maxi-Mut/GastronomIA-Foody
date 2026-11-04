@@ -14,6 +14,7 @@ import ExplorarView from '@/views/ExplorarView';
 import LugaresView from '@/views/LugaresView';
 import FavoritosView from '@/views/FavoritosView';
 import PerfilView from '@/views/PerfilView';
+import OnboardingModal from '@/components/OnboardingModal';
 
 import { Search, Sun, Moon, Bell, Sparkles, Menu } from 'lucide-react';
 
@@ -27,6 +28,8 @@ export default function Home() {
   const [topSearch, setTopSearch] = useState('');
   const [customApiKey, setCustomApiKey] = useState('');
   const [serverAiStatus, setServerAiStatus] = useState({ ia_conectada: false, proveedor: '' });
+  const [userProfile, setUserProfile] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Estados de responsividad y colapso
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -40,6 +43,19 @@ export default function Home() {
 
       const savedCollapse = localStorage.getItem('foody_sidebar_collapsed');
       if (savedCollapse === 'true') setIsSidebarCollapsed(true);
+
+      const storedProfile = localStorage.getItem('foody_user_profile');
+      if (storedProfile) {
+        try {
+          setUserProfile(JSON.parse(storedProfile));
+        } catch (e) {
+          console.warn('Error leyendo foody_user_profile de localStorage:', e);
+          setShowOnboarding(true);
+        }
+      } else {
+        // Primera visita: abrir modal de onboarding
+        setShowOnboarding(true);
+      }
     }
 
     fetch('/api/chat')
@@ -51,6 +67,20 @@ export default function Home() {
       })
       .catch(() => {});
   }, []);
+
+  const handleOnboardingComplete = (profile) => {
+    setUserProfile(profile);
+    setShowOnboarding(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foody_user_profile', JSON.stringify(profile));
+    }
+    // Sincronizar en segundo plano con el servidor
+    fetch('/api/usuarios/1', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profile)
+    }).catch(err => console.warn('Error sincronizando perfil con servidor:', err));
+  };
 
   const handleToggleCollapse = () => {
     setIsSidebarCollapsed(prev => {
@@ -114,7 +144,12 @@ export default function Home() {
         body: JSON.stringify({
           consulta: text,
           idUsuario: 1,
-          apiKey: customApiKey || undefined
+          apiKey: customApiKey || undefined,
+          perfil: userProfile,
+          historial: messages.slice(-6).map(m => ({
+            remitente: m.remitente,
+            contenido: m.contenido || m.respuesta || ''
+          }))
         })
       });
 
@@ -290,9 +325,15 @@ export default function Home() {
             <button
               onClick={() => setActiveView('perfil')}
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#133829] text-white flex items-center justify-center font-bold text-xs ring-2 ring-emerald-500/30 hover:ring-emerald-500 transition-all shadow-sm shrink-0"
-              title="Ver mi perfil y preferencias"
+              title={`Perfil: ${userProfile?.nombre || 'Ver mis preferencias'}`}
             >
-              GP
+              {(userProfile?.nombre || 'C')
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean)
+                .map(w => w[0]?.toUpperCase())
+                .slice(0, 2)
+                .join('') || 'C'}
             </button>
           </div>
         </header>
@@ -306,6 +347,7 @@ export default function Home() {
               venues={venues}
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
+              userName={userProfile?.nombre}
             />
           )}
 
@@ -350,7 +392,8 @@ export default function Home() {
 
           {activeView === 'perfil' && (
             <PerfilView
-              onProfileUpdated={() => {
+              onProfileUpdated={(updatedProfile) => {
+                if (updatedProfile) setUserProfile(updatedProfile);
                 alert('¡Tus preferencias han sido actualizadas! Foody las tendrá en cuenta en cada respuesta.');
               }}
             />
@@ -388,6 +431,13 @@ export default function Home() {
           onReviewAdded={handleReviewAdded}
         />
       )}
+
+      {/* Modal de Bienvenida y Configuración Inicial en Primer Ingreso */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingComplete}
+      />
     </div>
   );
 }

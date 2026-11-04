@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Utensils, Route, Landmark, Sparkles, Navigation, ChevronRight, MapPin, Heart, ShieldAlert } from 'lucide-react';
 
-export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], favorites = [], onToggleFavorite }) {
+export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], favorites = [], onToggleFavorite, userName = '' }) {
   const BENTO_ROW_1 = [
     {
       id: 'restaurantes',
@@ -70,7 +70,7 @@ export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], fa
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-neutral-900 dark:text-white leading-tight">
-            ¡Hola! Soy Foody,<br />
+            ¡Hola{userName ? ` ${userName}` : ''}! Soy Foody,<br />
             tu asistente de <span className="text-[#133829] dark:text-emerald-400">GastronomIA</span>
           </h1>
 
@@ -202,9 +202,8 @@ export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], fa
                       e.stopPropagation();
                       onToggleFavorite(venue);
                     }}
-                    className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all ${
-                      isFav ? 'bg-rose-500 text-white' : 'bg-black/40 text-white hover:bg-black/60'
-                    }`}
+                    className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all ${isFav ? 'bg-rose-500 text-white' : 'bg-black/40 text-white hover:bg-black/60'
+                      }`}
                   >
                     <Heart className={`w-4 h-4 ${isFav ? 'fill-white' : ''}`} />
                   </button>

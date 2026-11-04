@@ -17,17 +17,49 @@ export default function PerfilView({ onProfileUpdated }) {
   const [ambiente, setAmbiente] = useState('Tranquilo y Cálido');
   const [cocina, setCocina] = useState('Parrilla Argentina');
   const [restricciones, setRestricciones] = useState([]);
+  const [customRestriccion, setCustomRestriccion] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
+    // 1. Cargar inmediatamente desde localStorage si ya fue configurado en este dispositivo
+    let localData = null;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('foody_user_profile');
+      if (saved) {
+        try {
+          localData = JSON.parse(saved);
+          if (localData) {
+            setNombre(localData.nombre || '');
+            setPresupuesto(localData.presupuesto_preferido || '$$');
+            setAmbiente(localData.ambiente_preferido || 'Tranquilo y Cálido');
+            setCocina(localData.cocina_favorita || 'Parrilla Argentina');
+
+            const standardIds = RESTRICCIONES_LIST.map(r => r.id);
+            const stdRest = (localData.restricciones || []).filter(r => standardIds.includes(r));
+            const custom = (localData.restricciones || []).find(r => !standardIds.includes(r));
+
+            setRestricciones(stdRest);
+            if (custom) {
+              setCustomRestriccion(custom);
+              setShowCustomInput(true);
+            }
+          }
+        } catch (e) {
+          console.warn('Error leyendo foody_user_profile de localStorage:', e);
+        }
+      }
+    }
+
+    // 2. Traer del backend como respaldo o fusión si no hay localData
     fetch('/api/usuarios/1')
       .then(res => res.json())
       .then(data => {
-        if (data.usuario) {
+        if (data.usuario && !localData) {
           setUser(data.usuario);
-          setNombre(data.usuario.nombre || 'Gastrónomo Porteño');
+          setNombre(data.usuario.nombre || 'Comensal');
           setPresupuesto(data.usuario.presupuesto_preferido || '$$');
           setAmbiente(data.usuario.ambiente_preferido || 'Tranquilo y Cálido');
           setCocina(data.usuario.cocina_favorita || 'Parrilla Argentina');
@@ -47,27 +79,49 @@ export default function PerfilView({ onProfileUpdated }) {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
+
+    const finalRestricciones = [...restricciones];
+    if (customRestriccion.trim()) {
+      finalRestricciones.push(customRestriccion.trim());
+    }
+
+    const profileData = {
+      nombre: nombre.trim() || 'Comensal',
+      presupuesto_preferido: presupuesto,
+      ambiente_preferido: ambiente,
+      cocina_favorita: cocina,
+      restricciones: finalRestricciones,
+      configurado: true
+    };
+
+    // Guardar inmediatamente en localStorage (persistente en el navegador / celular del usuario)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foody_user_profile', JSON.stringify(profileData));
+    }
+
     try {
       const res = await fetch('/api/usuarios/1', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre,
-          presupuesto_preferido: presupuesto,
-          ambiente_preferido: ambiente,
-          cocina_favorita: cocina,
-          restricciones
-        })
+        body: JSON.stringify(profileData)
       });
 
       if (res.ok) {
         const data = await res.json();
         setSavedSuccess(true);
-        if (onProfileUpdated) onProfileUpdated(data.usuario);
+        if (onProfileUpdated) onProfileUpdated({ ...data.usuario, ...profileData });
+        setTimeout(() => setSavedSuccess(false), 3500);
+      } else {
+        // Aunque falle el serverless por cold start, el perfil ya quedó guardado en el cliente
+        setSavedSuccess(true);
+        if (onProfileUpdated) onProfileUpdated(profileData);
         setTimeout(() => setSavedSuccess(false), 3500);
       }
     } catch (err) {
-      console.error('Error saving profile:', err);
+      console.warn('Sync profile to server fallback:', err);
+      setSavedSuccess(true);
+      if (onProfileUpdated) onProfileUpdated(profileData);
+      setTimeout(() => setSavedSuccess(false), 3500);
     } finally {
       setSaving(false);
     }
@@ -138,6 +192,38 @@ export default function PerfilView({ onProfileUpdated }) {
                 </label>
               );
             })}
+
+            {/* Restricción personalizada (Otro) */}
+            <div className="p-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-[#F8F7F2] dark:bg-white/5 space-y-2">
+              <div
+                onClick={() => setShowCustomInput(!showCustomInput)}
+                className="flex items-center justify-between cursor-pointer"
+              >
+                <div>
+                  <span className="font-bold block text-sm text-neutral-800 dark:text-neutral-200">
+                    Otra Restricción Personalizada
+                  </span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Alergias específicas (mariscos, frutos secos, huevo), Kosher, APLV, etc.
+                  </span>
+                </div>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#D4AF37]/20 text-[#133829] dark:text-[#D4AF37]">
+                  {showCustomInput ? 'Ocultar' : customRestriccion.trim() ? 'Configurado' : '+ Agregar'}
+                </span>
+              </div>
+
+              {(showCustomInput || customRestriccion.trim()) && (
+                <div className="pt-1.5 animate-fadeIn">
+                  <input
+                    type="text"
+                    value={customRestriccion}
+                    onChange={(e) => setCustomRestriccion(e.target.value)}
+                    placeholder="Escribí acá tu restricción (ej: Alergia a mariscos)..."
+                    className="w-full text-xs p-2.5 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-[#133829]"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
