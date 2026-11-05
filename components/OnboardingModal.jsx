@@ -129,13 +129,13 @@ export default function OnboardingModal({ isOpen, onComplete, onSkip }) {
           {/* Campo Nombre */}
           <div className="space-y-1.5">
             <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
-              ¿Cómo te llamas?
+              ¿Cómo te gustaría que te llame Foody?
             </label>
             <input
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej: Maximiliano"
+              placeholder=""
               autoFocus
               className="w-full px-4 py-2.5 rounded-2xl bg-white dark:bg-[#232D27] text-sm text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#133829] dark:focus:ring-emerald-500 shadow-sm transition"
             />
