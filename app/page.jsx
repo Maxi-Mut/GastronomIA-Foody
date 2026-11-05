@@ -23,6 +23,7 @@ export default function Home() {
   const [venues, setVenues] = useState([]);
   const [favorites, setFavorites] = useState([1, 4]); // Don Julio y Sintaxis guardados por defecto
   const [selectedVenue, setSelectedVenue] = useState(null);
+  const [focusedVenue, setFocusedVenue] = useState(null);
   const [selectedZone, setSelectedZone] = useState('');
   const [darkMode, setDarkMode] = useState(false);
   const [topSearch, setTopSearch] = useState('');
@@ -30,6 +31,15 @@ export default function Home() {
   const [serverAiStatus, setServerAiStatus] = useState({ ia_conectada: false, proveedor: '' });
   const [userProfile, setUserProfile] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isAppLoading, setIsAppLoading] = useState(true);
+
+  // Efecto para la pantalla de carga inicial con Foody
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsAppLoading(false);
+    }, 700);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Estados de responsividad y colapso
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -203,6 +213,13 @@ export default function Home() {
     setActiveView('explorar');
   };
 
+  // Redireccionar y enfocar un local directamente en el mapa interactivo
+  const handleViewOnMap = (venue) => {
+    setSelectedVenue(null);
+    setFocusedVenue(venue);
+    setActiveView('explorar');
+  };
+
   // Búsqueda superior
   const handleTopSearchSubmit = (e) => {
     e.preventDefault();
@@ -241,6 +258,36 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen flex ${darkMode ? 'dark bg-[#111412] text-white' : 'bg-[#F8F7F2] text-[#222623]'}`}>
+      {/* Pantalla Splash de Carga Inicial con Foody */}
+      {isAppLoading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#FAF9F5] dark:bg-[#131915] text-neutral-800 dark:text-neutral-100 p-6 animate-fadeIn transition-opacity duration-500">
+          <div className="flex flex-col items-center max-w-xs text-center space-y-6">
+            <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-[#D4AF37]/30 bg-white p-2">
+              <Image
+                src="/foody_splash.png"
+                alt="Foody - Tu asistente de GastronomIA"
+                fill
+                className="object-contain p-2"
+                priority
+              />
+            </div>
+
+            <div className="space-y-2.5 w-full">
+              <h2 className="text-xl sm:text-2xl font-extrabold font-display text-[#133829] dark:text-emerald-400">
+                GastronomIA
+              </h2>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
+                Preparando tu mesa y cargando sabores de Buenos Aires...
+              </p>
+
+              <div className="w-48 h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full mx-auto overflow-hidden mt-3 shadow-inner">
+                <div className="h-full bg-gradient-to-r from-[#133829] via-[#D4AF37] to-[#133829] animate-pulse rounded-full w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. Sidebar (Escritorio colapsable + Drawer Móvil) */}
       <Sidebar
         activeView={activeView}
@@ -344,6 +391,7 @@ export default function Home() {
             <InicioView
               onQuickPrompt={handleSendMessage}
               onOpenVenue={setSelectedVenue}
+              onViewOnMap={handleViewOnMap}
               venues={venues}
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
@@ -355,6 +403,7 @@ export default function Home() {
             <ChatView
               messages={messages}
               onOpenVenue={setSelectedVenue}
+              onViewOnMap={handleViewOnMap}
               onResetChat={handleResetChat}
               isPending={isPending}
               onQuickPrompt={handleSendMessage}
@@ -371,12 +420,15 @@ export default function Home() {
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
               selectedZone={selectedZone}
+              focusedVenue={focusedVenue}
+              onClearFocusedVenue={() => setFocusedVenue(null)}
             />
           )}
 
           {activeView === 'mis-lugares' && (
             <LugaresView
               onOpenVenue={setSelectedVenue}
+              onViewOnMap={handleViewOnMap}
               venues={venues}
             />
           )}
@@ -386,6 +438,7 @@ export default function Home() {
               favorites={favorites}
               venues={venues}
               onOpenVenue={setSelectedVenue}
+              onViewOnMap={handleViewOnMap}
               onToggleFavorite={handleToggleFavorite}
             />
           )}
@@ -429,6 +482,7 @@ export default function Home() {
           isFavorite={favorites.includes(selectedVenue.id)}
           onToggleFavorite={handleToggleFavorite}
           onReviewAdded={handleReviewAdded}
+          onViewOnMap={handleViewOnMap}
         />
       )}
 

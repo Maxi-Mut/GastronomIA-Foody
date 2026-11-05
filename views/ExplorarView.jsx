@@ -1,15 +1,35 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Search, MapPin, Heart, ChevronRight, SlidersHorizontal, Map as MapIcon, LayoutGrid } from 'lucide-react';
 import ExplorarMap from '@/components/ExplorarMap';
 
-export default function ExplorarView({ venues = [], onOpenVenue, favorites = [], onToggleFavorite, selectedZone = '' }) {
+export default function ExplorarView({
+  venues = [],
+  onOpenVenue,
+  favorites = [],
+  onToggleFavorite,
+  selectedZone = '',
+  focusedVenue = null,
+  onClearFocusedVenue
+}) {
   const [search, setSearch] = useState('');
   const [zona, setZona] = useState(selectedZone);
   const [cocina, setCocina] = useState('');
   const [presupuesto, setPresupuesto] = useState('');
   const [dieta, setDieta] = useState('');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'map' | 'split'
+
+  // Al enfocar un local, cambiar automáticamente a vista de mapa y despejar filtros restrictivos
+  useEffect(() => {
+    if (focusedVenue) {
+      setViewMode('map');
+      setZona('');
+      setCocina('');
+      setPresupuesto('');
+      setDieta('');
+      setSearch('');
+    }
+  }, [focusedVenue]);
 
   const ZONAS = ['Todas', 'CABA', 'Zona Norte (GBA)', 'Zona Sur (GBA)', 'Zona Oeste (GBA)'];
   const COCINAS = ['Todas', 'Parrilla', 'Pizzería', 'Pastas', 'Cafetería', 'Bodegón', 'Vegana', 'Armenia'];
@@ -176,6 +196,30 @@ export default function ExplorarView({ venues = [], onOpenVenue, favorites = [],
         </div>
       </div>
 
+      {/* Banner Informativo si se seleccionó un local para ubicar */}
+      {focusedVenue && (
+        <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-[#133829] to-[#1C4D38] text-white flex items-center justify-between shadow-md animate-fadeIn">
+          <div className="flex items-center space-x-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-xl bg-[#D4AF37] text-[#133829] flex items-center justify-center font-bold shrink-0 shadow-sm">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div className="overflow-hidden">
+              <span className="text-[11px] text-emerald-200 block font-medium">Ubicación seleccionada en el mapa</span>
+              <span className="font-bold text-sm truncate block">{focusedVenue.nombre} ({focusedVenue.barrio || ''}, {focusedVenue.zona || ''})</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (onClearFocusedVenue) onClearFocusedVenue();
+            }}
+            className="text-xs bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-xl font-bold transition shrink-0 ml-3"
+          >
+            Ver todos
+          </button>
+        </div>
+      )}
+
       {/* Renderizado de Vistas: Mapa o Tarjetas o Ambos */}
       {(viewMode === 'map' || viewMode === 'split') && (
         <div className="space-y-2">
@@ -188,7 +232,7 @@ export default function ExplorarView({ venues = [], onOpenVenue, favorites = [],
               Hacé clic en cualquier marcador para ver la ficha del local
             </span>
           </div>
-          <ExplorarMap venues={filteredVenues} onOpenVenue={onOpenVenue} />
+          <ExplorarMap venues={filteredVenues} onOpenVenue={onOpenVenue} focusedVenue={focusedVenue} />
         </div>
       )}
 

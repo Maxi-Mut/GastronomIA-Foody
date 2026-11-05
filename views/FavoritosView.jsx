@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Heart, MapPin, ChevronRight, Phone } from 'lucide-react';
 
-export default function FavoritosView({ favorites = [], venues = [], onOpenVenue, onToggleFavorite }) {
+export default function FavoritosView({ favorites = [], venues = [], onOpenVenue, onToggleFavorite, onViewOnMap }) {
   const favoriteVenues = venues.filter(v => favorites.includes(v.id));
 
   return (
@@ -98,13 +98,26 @@ export default function FavoritosView({ favorites = [], venues = [], onOpenVenue
                     </a>
                   ) : <span className="text-neutral-400 text-[11px]">Sin teléfono</span>}
 
-                  <button
-                    onClick={() => onOpenVenue(venue)}
-                    className="font-bold text-[#133829] dark:text-emerald-400 hover:underline flex items-center space-x-0.5"
-                  >
-                    <span>Ver Ficha</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
+                  <div className="flex items-center space-x-2.5">
+                    {onViewOnMap && (
+                      <button
+                        type="button"
+                        onClick={() => onViewOnMap(venue)}
+                        className="text-[11px] font-bold text-[#133829] dark:text-emerald-400 hover:underline flex items-center space-x-0.5"
+                        title="Ubicar este establecimiento en el mapa"
+                      >
+                        <MapPin className="w-3 h-3 text-[#D4AF37]" />
+                        <span>Mapa</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onOpenVenue(venue)}
+                      className="font-bold text-[#133829] dark:text-emerald-400 hover:underline flex items-center space-x-0.5"
+                    >
+                      <span>Ver Ficha</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

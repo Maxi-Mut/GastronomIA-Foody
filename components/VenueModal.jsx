@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { X, MapPin, Phone, Globe, ShieldAlert, Star, Send, Sparkles, Heart } from 'lucide-react';
+import { X, MapPin, Phone, Globe, ShieldAlert, Star, Send, Sparkles, Heart, Navigation } from 'lucide-react';
 
-export default function VenueModal({ venue, onClose, isFavorite, onToggleFavorite, onReviewAdded }) {
+export default function VenueModal({ venue, onClose, isFavorite, onToggleFavorite, onReviewAdded, onViewOnMap }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -123,14 +123,29 @@ export default function VenueModal({ venue, onClose, isFavorite, onToggleFavorit
 
           {/* Datos de Contacto y Ubicación */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="flex items-center space-x-3 p-3 rounded-2xl bg-white dark:bg-neutral-800 border border-[#E8E6DF] dark:border-neutral-700">
-              <MapPin className="w-4 h-4 text-[#133829] dark:text-emerald-400 shrink-0" />
-              <div>
-                <span className="text-[11px] text-neutral-400 block font-medium">Dirección y Barrio</span>
-                <span className="font-semibold text-neutral-800 dark:text-neutral-100 line-clamp-1">
-                  {venue.direccion}, {venue.barrio}
-                </span>
+            {/* Dirección y Barrio cliqueable para ver en el mapa */}
+            <div
+              onClick={() => {
+                if (onViewOnMap) {
+                  onClose();
+                  onViewOnMap(venue);
+                }
+              }}
+              className="flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-neutral-800 border border-[#E8E6DF] dark:border-neutral-700 hover:border-[#133829] dark:hover:border-emerald-500 cursor-pointer transition-all group shadow-sm"
+              title="Hacé clic para ubicar este local directamente en el mapa interactivo"
+            >
+              <div className="flex items-center space-x-3 overflow-hidden">
+                <MapPin className="w-4 h-4 text-[#133829] dark:text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
+                <div className="overflow-hidden">
+                  <span className="text-[11px] text-neutral-400 block font-medium">Dirección y Barrio</span>
+                  <span className="font-semibold text-neutral-800 dark:text-neutral-100 truncate block group-hover:text-[#133829] dark:group-hover:text-emerald-400 transition-colors">
+                    {venue.direccion}, {venue.barrio}
+                  </span>
+                </div>
               </div>
+              <span className="text-[10px] font-bold text-[#133829] dark:text-emerald-400 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 group-hover:bg-[#133829] group-hover:text-white transition-all shrink-0 ml-2">
+                Ver mapa →
+              </span>
             </div>
 
             {venue.telefono ? (
@@ -172,6 +187,35 @@ export default function VenueModal({ venue, onClose, isFavorite, onToggleFavorit
                 </div>
               </a>
             )}
+          </div>
+
+          {/* Botones Destacados de Mapa y Navegación GPS */}
+          <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            {onViewOnMap && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onViewOnMap(venue);
+                }}
+                className="flex-1 py-3 px-4 rounded-2xl bg-[#133829] hover:bg-[#1C4D38] text-white font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-sm transition-all"
+              >
+                <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                <span>Ver ubicación en mapa de la app</span>
+              </button>
+            )}
+
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                `${venue.nombre}, ${venue.direccion}, ${venue.barrio || ''}, Buenos Aires`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-3 px-4 rounded-2xl bg-[#F8F7F2] dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all"
+            >
+              <Navigation className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Cómo llegar (Google Maps)</span>
+            </a>
           </div>
 
           {/* Opciones Dietarias con Nivel de Información */}

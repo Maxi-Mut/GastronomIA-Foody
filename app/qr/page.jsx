@@ -272,10 +272,13 @@ export default function QRManagerPage() {
 
     // Texto Foody
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 68px "Plus Jakarta Sans", sans-serif';
+    ctx.font = '900 68px "Sour Gummy", "Bubblegum Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('Foody', width / 2, 135);
+    ctx.strokeStyle = '#133829';
+    ctx.lineWidth = 4;
+    ctx.strokeText('Foody', width / 2, 135);
 
     // Subtítulo: Tu asistente de GastronomIA
     ctx.font = '700 28px "Plus Jakarta Sans", sans-serif';
@@ -303,13 +306,6 @@ export default function QRManagerPage() {
     ctx.font = '900 30px "Plus Jakarta Sans", sans-serif';
     ctx.fillText('¡ESCANÉAME Y DESCUBRE NUEVOS SABORES!', width / 2, 982);
 
-    // Sub-banner: "¡ESCANÉAME!"
-    ctx.fillStyle = '#133829';
-    roundRect(ctx, width / 2 - 160, 1045, 320, 75, 38, true, false);
-
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 34px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('¡ESCANÉAME!', width / 2, 1083);
 
     // Línea inferior decorativa
     ctx.strokeStyle = '#133829';
@@ -389,22 +385,20 @@ export default function QRManagerPage() {
           <div className="inline-flex p-1 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
             <button
               onClick={() => setActiveTab('qr')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
-                activeTab === 'qr'
-                  ? 'bg-[#133829] text-white shadow-sm'
-                  : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white'
-              }`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${activeTab === 'qr'
+                ? 'bg-[#133829] text-white shadow-sm'
+                : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white'
+                }`}
             >
               <QrCode className="w-4 h-4 text-[#D4AF37]" />
               <span>Código QR Solitario</span>
             </button>
             <button
               onClick={() => setActiveTab('flyer')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
-                activeTab === 'flyer'
-                  ? 'bg-[#133829] text-white shadow-sm'
-                  : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white'
-              }`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${activeTab === 'flyer'
+                ? 'bg-[#133829] text-white shadow-sm'
+                : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white'
+                }`}
             >
               <FileText className="w-4 h-4 text-[#D4AF37]" />
               <span>Cartel / Flyer Completo</span>

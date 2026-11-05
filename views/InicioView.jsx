@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Utensils, Route, Landmark, Sparkles, Navigation, ChevronRight, MapPin, Heart, ShieldAlert } from 'lucide-react';
 
-export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], favorites = [], onToggleFavorite, userName = '' }) {
+export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], favorites = [], onToggleFavorite, userName = '', onViewOnMap }) {
   const BENTO_ROW_1 = [
     {
       id: 'restaurantes',
@@ -233,13 +233,29 @@ export default function InicioView({ onQuickPrompt, onOpenVenue, venues = [], fa
                     <span className="text-neutral-400 italic truncate max-w-[170px]">
                       Fuente: {venue.fuente_principal || 'GCBA'}
                     </span>
-                    <button
-                      onClick={() => onOpenVenue(venue)}
-                      className="font-bold text-[#133829] dark:text-emerald-400 hover:underline flex items-center space-x-0.5 shrink-0"
-                    >
-                      <span>Ver ficha</span>
-                      <ChevronRight className="w-3 h-3" />
-                    </button>
+                    <div className="flex items-center space-x-2 shrink-0">
+                      {onViewOnMap && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewOnMap(venue);
+                          }}
+                          className="font-bold text-[#133829] dark:text-emerald-400 hover:underline flex items-center space-x-0.5 text-[11px]"
+                          title="Ubicar este local en el mapa interactivo"
+                        >
+                          <MapPin className="w-3 h-3 text-[#D4AF37]" />
+                          <span>Mapa</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => onOpenVenue(venue)}
+                        className="font-bold text-[#133829] dark:text-emerald-400 hover:underline flex items-center space-x-0.5 shrink-0"
+                      >
+                        <span>Ver ficha</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

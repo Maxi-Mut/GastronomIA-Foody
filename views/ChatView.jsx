@@ -104,6 +104,7 @@ function parseInlineMarkdown(str) {
 export default function ChatView({
   messages = [],
   onOpenVenue,
+  onViewOnMap,
   onResetChat,
   isPending,
   onQuickPrompt,
@@ -319,14 +320,30 @@ export default function ChatView({
                         </p>
                       </div>
 
-                      {/* Explicit Source Citation */}
-                      <div className="pt-2 mt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-[11px]">
-                        <span className="text-neutral-400 truncate max-w-[180px]">
+                      {/* Explicit Source Citation & Quick Actions */}
+                      <div className="pt-2 mt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-[11px] gap-2">
+                        <span className="text-neutral-400 truncate max-w-[130px] sm:max-w-[180px]">
                           <strong>Fuente:</strong> {venue.fuente_principal || 'Datos Abiertos'}
                         </span>
-                        <span className="font-bold text-[#133829] dark:text-emerald-400 flex items-center">
-                          Ver Ficha <ChevronRight className="w-3 h-3" />
-                        </span>
+                        <div className="flex items-center space-x-2 shrink-0">
+                          {onViewOnMap && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onViewOnMap(venue);
+                              }}
+                              className="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#133829] dark:text-emerald-400 hover:bg-[#133829] hover:text-white font-bold transition-all flex items-center space-x-1"
+                              title="Ubicar este local directamente en el mapa interactivo"
+                            >
+                              <MapPin className="w-3 h-3 text-[#D4AF37]" />
+                              <span>Ver en mapa</span>
+                            </button>
+                          )}
+                          <span className="font-bold text-[#133829] dark:text-emerald-400 flex items-center group-hover:translate-x-0.5 transition-transform">
+                            Ver Ficha <ChevronRight className="w-3 h-3" />
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -5,6 +5,8 @@ export const metadata = {
   description: 'Descubrí los mejores sabores, restaurantes y rutas gastronómicas en Buenos Aires y Gran Buenos Aires con Foody.',
   icons: {
     icon: '/foody_favicon.png',
+    shortcut: '/foody_favicon.png',
+    apple: '/foody_favicon.png',
   },
 };
 
